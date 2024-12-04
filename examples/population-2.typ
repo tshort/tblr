@@ -1,4 +1,5 @@
-#import "../tblr.typ": *
+#import "@preview/tblr:0.1.0": *
+// #import "../tblr.typ": *
 #import "@preview/zero:0.1.0": num
 
 #{

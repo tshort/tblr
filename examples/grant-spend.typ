@@ -1,4 +1,5 @@
-#import "../tblr.typ": *
+#import "@preview/tblr:0.1.0": *
+// #import "../tblr.typ": *
 
 #{
 // Adapted from https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs

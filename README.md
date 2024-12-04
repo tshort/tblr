@@ -11,6 +11,8 @@ Here is an example:
 ![Example 1](examples/population.svg)
 
 ```typ
+#import "@preview/tblr:0.1.0": *
+
 #{
 let pop = csv.decode("
 China ,1313,9596,136.9
@@ -120,6 +122,8 @@ Adapted from [here](https://www.storytellingwithdata.com/blog/2012/02/grables-an
 ![Example 2](examples/grant-spend.svg)
 
 ```typ
+#import "@preview/tblr:0.1.0": *
+
 #{
 let data = csv.decode("
 Tower Hamlets,1,3,269,9692642
@@ -163,6 +167,8 @@ create many tables with a booktabs style. The `column-gutter` is needed for sepa
 ![Example 3](examples/booktabs.svg)
 
 ```typ
+#import "@preview/tblr:0.1.0": *
+
 #{
 tblr(columns: 7, header-rows: 2,
   stroke: none,
