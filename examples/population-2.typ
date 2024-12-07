@@ -1,6 +1,6 @@
-#import "@preview/tblr:0.1.0": *
-// #import "../tblr.typ": *
-#import "@preview/zero:0.1.0": num
+// #import "@preview/tblr:0.2.0": *
+#import "../tblr.typ": *
+#import "@preview/zero:0.3.0": ztable
 
 #set page(height: auto, width: auto, margin: 0em)
 
@@ -21,12 +21,13 @@ Nigeria,131,923,142.7"
 #set table(stroke: none)
 
 #tblr(header-rows: 1, columns: 4,
+  table-fun: ztable,
   align: (left+bottom, center, center, center),
   // ztable formatting
   format: (none, auto, auto, auto),
   // formatting directives
-  header-rows(0, fill: blue, hooks: (strong, text.with(white))),
-  body-rows(calc.even, fill: gray.lighten(80%)),
+  rows(within: "header", 0, fill: blue, hooks: (strong, text.with(white))),
+  rows(within: "body", calc.even, fill: gray.lighten(80%)),
   // content
   [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
   ..pop

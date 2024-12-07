@@ -1,4 +1,3 @@
-#import "@preview/zero:0.1.0": ztable
 
 /////////////// 
 // Utilities
@@ -136,7 +135,7 @@
     return rng.filter(x)
   }
   if is-type(x, "span") {
-    return range(expand-position(x.start, rng, extras: extras).at(0), expand-position(x.stop, rng, extras: extras).at(0), step: x.step)
+    return range(expand-position(x.start, rng, extras: extras).at(0), 1 + expand-position(x.stop, rng, extras: extras).at(0), step: x.step)
   }
   if type(x) == array {
     let result = ()
@@ -190,7 +189,7 @@
 // `table.hline`, and cell contents are passed to the `table` function.
 //
 // Other arguments can be special directives to control formatting.
-// These include `cells()`, `cols()`, `rows()`, `header-rows()`, ...
+// These include `cells()`, `cols()`, `rows()`, ...
 // 
 // Named arguments specific to `tblr` include:
 // `header-rows` (default: 0): Number of header rows in the content.
@@ -347,7 +346,7 @@
 // Special arguments include directives that specify further processing. These include:
 // `hooks` -- apply the given function to the cell contents.
 // `sets` -- a list of `set` options to apply for that cell.
-// `within` -- apply to "header" or "body" if supplied
+// `within` -- apply row ranges to "header" or "body" if supplied
 //
 #let cells(..args, within: auto) = {
   (_type_: "cells", within: within) + args.named() + (cells: args.pos())
@@ -367,7 +366,7 @@
 
 // Like `table.hline` but lazy and can include indicators like `end`.
 #let hline(y: none, within: auto, ..args) = {
-  (_type_: "hline", ..((y: y,) + args.named()))
+  (_type_: "hline", within: within, ..((y: y,) + args.named()))
 }  
 
 // Like `table.vline` but lazy and can include indicators like `end`.
@@ -384,16 +383,3 @@
   (_type_: "apply", cells: cells.pos(), fun: fun, within: within)
 }
 
-#set page(width: auto, margin: (x: 1cm, y: 1cm))
-
-#tblr(columns: 3, apply((auto,1), x => x.map(y => y + "p")), ..range(9).map(str))
-
-#tblr(columns: 3, header-rows: 1, apply(within: "body", (auto,(0,2)), x => x.map(y => y + "p")), ..range(12).map(str))
-
-
-#tblr(columns: 3, header-rows: 1, cols(within: "body", 0, end, fill: blue), ..range(12).map(str))
-
-
-// sum the column
-#tblr(columns: 3, apply((auto,auto), x => {x.at(x.len() - 1) = str(x.slice(0,-1).map(float).sum()); return x}), ..range(12).map(str),[0],[0],[0])
-)

@@ -11,35 +11,33 @@ Here is an example:
 ![Example 1](examples/population.svg)
 
 ```typ
-#import "@preview/tblr:0.1.0": *
+#import "@preview/tblr:0.2.0": *
 
 #let pop = csv.decode("
-China ,1313,9596,136.9
-India ,1095,3287,333.2
-United States ,298,9631,31.0
-Indonesia ,245,1919,127.9
-Brazil ,188,8511,22.1
-Pakistan ,165,803,206.2
-Bangladesh ,147,144,1023.4
-Russia ,142,17075,8.4
-Nigeria ,131,923, 142.7").flatten()
+China,1313,9596,136.9
+India,1095,3287,333.2
+United States,298,9631,31.0
+Indonesia,245,1919,127.9
+Brazil,188,8511,22.1
+Pakistan,165,803,206.2
+Bangladesh,147,144,1023.4
+Russia,142,17075,8.4
+Nigeria,131,923,142.7"
+).flatten()
 
 #set table(stroke: none)
 
 #tblr(header-rows: 1, columns: 4,
   align: (left+bottom, center, center, center),
   // formatting directives
-  header-rows(0, fill: aqua.lighten(60%), hooks: strong),
-  body-cols(0, fill: gray.lighten(70%), hooks: strong),
-  body-rows(1, 6, hooks: text.with(red)),
+  rows(within: "header", 0, fill: aqua.lighten(60%), hooks: strong),
+  cols(within: "body", 0, fill: gray.lighten(70%), hooks: strong),
+  rows(within: "body", 1, 6, hooks: text.with(red)),
   cells(((2, -3), end), hooks: strong),
   // content
-  [Country], [Population \ (millions)],
-  [Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
+  [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
   ..pop
 )
-
-
 ```
 
 
@@ -64,7 +62,8 @@ Named arguments specific to `tblr` include:
 * `remarks`: Content to include as a comment below the table.
 * `caption`: If provided, wrap the `table` in a `figure`.
 * `placement` (default: `auto`): Passed to `figure`.
-* `table-fun` (default: `ztable`): Specifies the table-creation function to use.
+* `table-fun` (default: `table`): Specifies the table-creation function to use.
+* `within`: apply row ranges to "header" or "body" if supplied.
 
 ### `cells` and other special formatting directives
 
@@ -80,7 +79,7 @@ Accepted indicators include:
 * `end`: the last row or column.
 * `auto`: all rows or columns.
 * Negative integers: indexing from the end; -1 is the last row/column.
-* `span(to)` or `span(from, to)`: ranges of rows or columns.
+* `span(to)` or `span(from, to)`: ranges of rows or columns. Note that the `to` argument to `span` is different than the `to` argument for `range`. With `span`, the `to` argument is inclusive. `span(2, end)` includes the last row/column.
 * A function that returns a boolean indicating whether to include the row or column; commonly `calc.even` or `calc.odd` to select alternating rows or columns.
 
 Named arguments are passed to cells. These include normal arguments like
@@ -97,12 +96,6 @@ Other variations of `cells` include:
   are one or more column indicators.
 * `rows`: Control formatting of rows. Normal positional arguments
   are one or more row indicators.
-* `header-cells`: Like `cells` but for headers.
-* `header-cols`:  Like `cols` but for headers.
-* `header-rows`:  Like `rows` but for headers.
-* `body-cells`: Like `cells` but for the table body.
-* `body-cols`:  Like `cols` but for the table body.
-* `body-rows`:  Like `rows` but for the table body.
 
 Several directives are available to control horizontal and vertical
 lines. These are like `table.hline` and `table.vline`, but they can
@@ -111,6 +104,10 @@ include directives like `end`.
 * `hline`
 * `header-hline`: like `hline`, but relative to the header.
 * `vline`
+
+Another special directive is `apply` which can apply a function to
+columns of a matrix. It accepts a `within` argument of "body" to apply
+only to the columns in the body of the table.
 
 ## More Examples
 
@@ -121,10 +118,9 @@ Adapted from [here](https://www.storytellingwithdata.com/blog/2012/02/grables-an
 ![Example 2](examples/grant-spend.svg)
 
 ```typ
-#import "@preview/tblr:0.1.0": *
+#import "@preview/tblr:0.2.0": *
 
-#{
-let data = csv.decode("
+#let data = csv.decode("
 Tower Hamlets,1,3,269,9692642
 Hackney,2,2,225,7809608
 Southwark,3,12,232,7266118
@@ -137,20 +133,22 @@ Merton,9,29,113,3656112
 Croydon,10,20,127,3629066
 ").flatten()
 
-let bar(x) = {
+#set table(stroke: none)
+
+#let bar(x) = {
   rect(width: int(x) / 7000000 * 2in, fill: blue, text(fill: white, x))
 }
 
-tblr(header-rows: 1, columns: 5,
+#tblr(header-rows: 1, columns: 5,
   align: center+horizon,
   // formatting directives
-  header-rows(0, fill: aqua.lighten(60%), hooks: strong),
-  body-cols(0, align: left, fill: gray.lighten(70%), hooks: strong),
-  body-cols(-1, align: left, hooks: bar),
+  rows(within: "header", 0, fill: aqua.lighten(60%), hooks: strong),
+  cols(within: "body", 0, align: left, fill: gray.lighten(70%), hooks: strong),
+  cols(within: "body", -1, align: left, hooks: bar),
   // content
   [Borough],[Trust\ rank],[Index\ rank],[Number\ of grants],[Amount approved (£)],
   ..data
-)}
+)
 ```
 
 This example tries to mimic [booktabs](https://ctan.org/pkg/booktabs).
@@ -159,29 +157,27 @@ works fine, but adjusting the spacings between rule locations and rows
 is tough. It'd be great to have [this
 feature](https://github.com/typst/typst/issues/4743) to adjust spacing
 around `hlines`. The approach below adjusts insets to make the spacing
-between rows nicer. It's a bit cumbersome, but the formatting
-directives can be used as part of a wrapper function if you want to
-create many tables with a booktabs style. The `column-gutter` is needed for separation of the rules between the two header rows.
+between rows nicer. The `column-gutter` is needed for
+separation of the rules between the two column blocks.
 
 ![Example 3](examples/booktabs.svg)
 
 ```typ
-#import "@preview/tblr:0.1.0": *
+#import "@preview/tblr:0.2.0": *
 
-#{
-tblr(columns: 7, header-rows: 2,
+#tblr(columns: 7, header-rows: 2,
   stroke: none,
-  column-gutter: 9pt,
   // combine header cells
   cells((0, (1,4)), colspan: 3, stroke: (bottom: 0.03em)),
+  column-gutter: 0.6em,
   // booktabs style rules
-  header-rows(auto, inset: (y: 7pt)),
-  header-rows(auto, align: center),
-  header-hline(y: 0, stroke: 0.08em),
-  header-hline(y: end, position: bottom, stroke: 0.05em),
-  body-rows(0, inset: (top: 9pt)),
+  rows(within: "header", auto, inset: (y: 0.5em)),
+  rows(within: "header", auto, align: center),
+  hline(within: "header", y: 0, stroke: 0.08em),
+  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
+  rows(within: "body", 0, inset: (top: 0.5em)),
   hline(y: end, position: bottom, stroke: 0.08em),
-  rows(end, inset: (bottom: 9pt)),
+  rows(end, inset: (bottom: 0.5em)),
   // table note and caption
   remarks: [Note: ] + lorem(18),
   caption: [This is a caption],
@@ -191,7 +187,26 @@ tblr(columns: 7, header-rows: 2,
   [trigmv   ],  [11034], [1.3e-7], [3.9], [15846], [2.7e-11], [5.6 ], 
   [trigexpmv], [21952], [1.3e-7], [6.2], [31516], [2.7e-11], [8.8 ], 
   [trigblock], [15883], [5.2e-8], [7.1], [32023], [1.1e-11], [1.4e1], 
-  [expleja  ], [11180], [8.0e-9], [4.3], [17348], [1.5e-11], [6.6 ])}
+  [expleja  ], [11180], [8.0e-9], [4.3], [17348], [1.5e-11], [6.6 ])
+ ```
+
+The approach above is a bit cumbersome, but the formatting directives
+can be used as part of a wrapper function if you want to create many
+tables with a booktabs style. Here's an example:
+
+```typ
+#let booktbl = tblr.with(
+  stroke: none,
+  column-gutter: 9pt,
+  // booktabs style rules
+  rows(within: "header", auto, inset: (y: 7pt)),
+  rows(within: "header", auto, align: center),
+  hline(within: "header", y: 0, stroke: 0.08em),
+  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
+  rows(within: "body", 0, inset: (top: 9pt)),
+  hline(y: end, position: bottom, stroke: 0.08em),
+  rows(end, inset: (bottom: 9pt)),
+)
 ```
 
 Here is an example of the first table with decimal alignment provided by
@@ -204,13 +219,30 @@ use of a function indicator to select alternating rows and using more than one h
 ![Example 4](examples/population-2.svg)
 
 ```typ
-tblr(header-rows: 1, columns: 4,
+#import "@preview/zero:0.3.0": ztable
+
+#let pop = csv.decode("
+China,1313,9596,136.9
+India,1095,3287,333.2
+United States,298,9631,31.0
+Indonesia,245,1919,127.9
+Brazil,188,8511,22.1
+Pakistan,165,803,206.2
+Bangladesh,147,144,1023.4
+Russia,142,17075,8.4
+Nigeria,131,923,142.7"
+).flatten()
+
+#set table(stroke: none)
+
+#tblr(header-rows: 1, columns: 4,
+  table-fun: ztable,
   align: (left+bottom, center, center, center),
   // ztable formatting
   format: (none, auto, auto, auto),
   // formatting directives
-  header-rows(0, fill: blue, hooks: (strong, text.with(white))),
-  body-rows(calc.even, fill: gray.lighten(80%)),
+  rows(within: "header", 0, fill: blue, hooks: (strong, text.with(white))),
+  rows(within: "body", calc.even, fill: gray.lighten(80%)),
   // content
   [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
   ..pop

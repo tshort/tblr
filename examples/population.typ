@@ -1,5 +1,5 @@
-#import "@preview/tblr:0.1.0": *
-// #import "../tblr.typ": *
+// #import "@preview/tblr:0.2.0": *
+#import "../tblr.typ": *
 
 #set page(height: auto, width: auto, margin: 0em)
 
@@ -20,9 +20,9 @@ Nigeria,131,923,142.7"
 #tblr(header-rows: 1, columns: 4,
   align: (left+bottom, center, center, center),
   // formatting directives
-  header-rows(0, fill: aqua.lighten(60%), hooks: strong),
-  body-cols(0, fill: gray.lighten(70%), hooks: strong),
-  body-rows(1, 6, hooks: text.with(red)),
+  rows(within: "header", 0, fill: aqua.lighten(60%), hooks: strong),
+  cols(within: "body", 0, fill: gray.lighten(70%), hooks: strong),
+  rows(within: "body", 1, 6, hooks: text.with(red)),
   cells(((2, -3), end), hooks: strong),
   // content
   [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
