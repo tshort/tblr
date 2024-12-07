@@ -109,6 +109,9 @@ Another special directive is `apply` which can apply a function to
 columns of a matrix. It accepts a `within` argument of "body" to apply
 only to the columns in the body of the table.
 
+Note that the order of formatting directions matters. These are
+processed in reverse order, so later entries override earlier entries.
+
 ## More Examples
 
 This example shows use of a custom function to add some graphical 
