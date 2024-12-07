@@ -217,7 +217,7 @@
   let content = ()
   let specs = ()
   for el in a {
-    if is-type(el, "cells") or is-type(el, "body-cells") or is-type(el, "header-cells") or is-type(el, "by-col-hook") or is-type(el, "body-by-col-hook") {
+    if is-type(el, "cells") or is-type(el, "apply") {
       specs.push(el)
     } else {
       content.push(el)
@@ -227,13 +227,13 @@
   let nrows = matrix.len()
   // process cell-level specs
   for s in specs.rev() {
-    if s._type_ in ("cells", "header-cells", "body-cells") {
-      let positions = if s._type_ == "cells" {
-        expand-positions(s.cells, range(nrows), range(ncols), header-rows)
-      } else if s._type_ == "header-cells" {
+    if is-type(s, "cells") {
+      let positions = if s.within == "header" {
         expand-positions(s.cells, range(header-rows), range(ncols), 0)
-      } else if s._type_ == "body-cells" {
+      } else if s.within == "body" {
         expand-positions(s.cells, range(header-rows, nrows), range(ncols), 0)
+      } else {
+        expand-positions(s.cells, range(nrows), range(ncols), header-rows)
       }
       
       for (row, col) in positions {
@@ -250,7 +250,7 @@
             }
           }
         }
-        matrix.at(row).at(col).cell-fields = remove(s, ("cells", "sets", "hooks", "_type_")) + matrix.at(row).at(col).at("cell-fields", default: (:))  
+        matrix.at(row).at(col).cell-fields = remove(s, ("cells", "sets", "hooks", "within", "_type_")) + matrix.at(row).at(col).at("cell-fields", default: (:))  
         let cs = matrix.at(row).at(col).at("cell-fields", default: (:)).at("colspan", default: 1)
         for i in range(col + 1, col + cs) {
           matrix.at(row).at(i).body = none
@@ -261,11 +261,11 @@
         }
       }
     }
-    if s._type_ in ("by-col-hook", "body-by-col-hook") {
-      let col-positions = if s._type_ == "by-col-hook" {
-        expand-positions-by-col(s.cells, range(nrows), range(ncols), header-rows)
-      } else if s._type_ == "body-by-col-hook" {
+    if is-type(s, "apply") {
+      let col-positions = if s.within == "body" {
         expand-positions-by-col(s.cells, range(header-rows, nrows), range(ncols), 0)
+      } else {
+        expand-positions-by-col(s.cells, range(nrows), range(ncols), header-rows)
       }
       for posv in col-positions {
         // read
@@ -286,20 +286,19 @@
   let line-output = ()
   for l in lines {
     if is-type(l, "hline") {
-      l = remove(l, ("_type_",))
-      l.y = expand-position(l.y, range(nrows)).at(0)
-      line-output.push(table.hline(..l))
-    }
-    if is-type(l, "header-hline") {
-      l = remove(l, ("_type_",))
-      l.y = expand-position(l.y, range(header-rows)).at(0)
+      if l.within == "header" {
+        l.y = expand-position(l.y, range(header-rows)).at(0)
+      } else {
+        l.y = expand-position(l.y, range(nrows)).at(0)
+      }
+      l = remove(l, ("_type_", "within"))
       line-output.push(table.hline(..l))
     }
     if is-type(l, "vline") {
       line-output.push(table.vline(..remove(l, ("_type_",))))
     }
   }
-  // return (matrix)
+  // return matrix
   // convert back to a table
   let (t, h) = matrix-to-table(matrix, header-rows)
   t = if h.len() > 0 {
@@ -348,9 +347,10 @@
 // Special arguments include directives that specify further processing. These include:
 // `hooks` -- apply the given function to the cell contents.
 // `sets` -- a list of `set` options to apply for that cell.
+// `within` -- apply to "header" or "body" if supplied
 //
-#let cells(..args) = {
-  (_type_: "cells") + args.named() + (cells: args.pos())
+#let cells(..args, within: auto) = {
+  (_type_: "cells", within: within) + args.named() + (cells: args.pos())
 }  
 
 // Directive to control formatting of columns.
@@ -365,50 +365,9 @@
   cells(..args.named(), ..args.pos().map(x => (x, auto)))
 }  
 
-// Directive to control formatting of cells within a header.
-// Like `cells` but only applies to header cells.
-#let header-cells(..args) = {
-  (_type_: "header-cells") + args.named() + (cells: args.pos())
-}  
-
-// Directive to control formatting of columns within a header.
-// Like `cols` but only applies to columns in the header.
-#let header-cols(..args) = {
-  header-cells(..args.named(), ..args.pos().map(x => (auto, x)))
-}  
-
-// Directive to control formatting of columns within a header.
-// Like `cols` but only applies to columns in the header.
-#let header-rows(..args) = {
-  header-cells(..args.named(), ..args.pos().map(x => (x, auto)))
-}  
-
-// Directive to control formatting of cells within the table body.
-// Like `cells` but only applies to cells within the table body.
-#let body-cells(..args) = {
-  (_type_: "body-cells") + args.named() + (cells: args.pos())
-}  
-
-// Directive to control formatting of columns within the table body.
-// Like `cols` but only applies to columns in the body.
-#let body-cols(..args) = {
-  body-cells(..args.named(), ..args.pos().map(x => (auto, x)))
-}  
-
-// Directive to control formatting of rows within the table body.
-// Like `rows` but only applies to rows in the body.
-#let body-rows(..args) = {
-  body-cells(..args.named(), ..args.pos().map(x => (x, auto)))
-}  
-
 // Like `table.hline` but lazy and can include indicators like `end`.
-#let hline(y: none, ..args) = {
+#let hline(y: none, within: auto, ..args) = {
   (_type_: "hline", ..((y: y,) + args.named()))
-}  
-
-// Like `hline` but for use in headers.
-#let header-hline(y: none, ..args) = {
-  (_type_: "header-hline", ..((y: y,) + args.named()))
 }  
 
 // Like `table.vline` but lazy and can include indicators like `end`.
@@ -421,16 +380,20 @@
 }  
 
 // 
-#let by-col-hook(..cells, fun) = {
-  (_type_: "by-col-hook", cells: cells.pos(), fun: fun)
+#let apply(..cells, fun, within: none) = {
+  (_type_: "apply", cells: cells.pos(), fun: fun, within: within)
 }
 
-#let body-by-col-hook(..cells, fun) = {
-  (_type_: "body-by-col-hook", cells: cells.pos(), fun: fun)
-}
+#set page(width: auto, margin: (x: 1cm, y: 1cm))
+
+#tblr(columns: 3, apply((auto,1), x => x.map(y => y + "p")), ..range(9).map(str))
+
+#tblr(columns: 3, header-rows: 1, apply(within: "body", (auto,(0,2)), x => x.map(y => y + "p")), ..range(12).map(str))
 
 
-#tblr(columns: 3, by-col-hook((auto,1), x => x.map(y => y + "p")), ..range(8).map(str))
+#tblr(columns: 3, header-rows: 1, cols(within: "body", 0, end, fill: blue), ..range(12).map(str))
 
-#tblr(columns: 3, header-rows: 1, body-by-col-hook((auto,(0,2)), x => x.map(y => y + "p")), ..range(12).map(str))
 
+// sum the column
+#tblr(columns: 3, apply((auto,auto), x => {x.at(x.len() - 1) = str(x.slice(0,-1).map(float).sum()); return x}), ..range(12).map(str),[0],[0],[0])
+)
