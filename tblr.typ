@@ -434,4 +434,3 @@
 
 #tblr(columns: 3, header-rows: 1, body-by-col-hook((auto,(0,2)), x => x.map(y => y + "p")), ..range(12).map(str))
 
-hj
