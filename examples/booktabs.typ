@@ -1,11 +1,10 @@
 #import "@preview/tblr:0.1.0": *
 // #import "../tblr.typ": *
 
-#{
-set page(height: auto, width: auto, margin: 2pt)
-show figure.where(kind: table): set figure.caption(position: top)
+#set page(height: auto, width: auto, margin: 2pt)
+#show figure.where(kind: table): set figure.caption(position: top)
 
-tblr(columns: 7, header-rows: 2,
+#tblr(columns: 7, header-rows: 2,
   stroke: none,
   column-gutter: 9pt,
   // combine header cells
@@ -27,5 +26,5 @@ tblr(columns: 7, header-rows: 2,
   [trigmv   ],  [11034], [1.3e-7], [3.9], [15846], [2.7e-11], [5.6 ], 
   [trigexpmv], [21952], [1.3e-7], [6.2], [31516], [2.7e-11], [8.8 ], 
   [trigblock], [15883], [5.2e-8], [7.1], [32023], [1.1e-11], [1.4e1], 
-  [expleja  ], [11180], [8.0e-9], [4.3], [17348], [1.5e-11], [6.6 ])}
+  [expleja  ], [11180], [8.0e-9], [4.3], [17348], [1.5e-11], [6.6 ])
   

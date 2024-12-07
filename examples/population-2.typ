@@ -2,12 +2,11 @@
 // #import "../tblr.typ": *
 #import "@preview/zero:0.1.0": num
 
-#{
-set page(height: auto, width: auto, margin: 0em)
+#set page(height: auto, width: auto, margin: 0em)
 
-show table: set text(number-type: "lining", number-width: "tabular")
+#show table: set text(number-type: "lining", number-width: "tabular")
 
-let pop = csv.decode("
+#let pop = csv.decode("
 China,1313,9596,136.9
 India,1095,3287,333.2
 United States,298,9631,31.0
@@ -19,9 +18,9 @@ Russia,142,17075,8.4
 Nigeria,131,923,142.7"
 ).flatten()
 
-set table(stroke: none)
+#set table(stroke: none)
 
-tblr(header-rows: 1, columns: 4,
+#tblr(header-rows: 1, columns: 4,
   align: (left+bottom, center, center, center),
   // ztable formatting
   format: (none, auto, auto, auto),
@@ -33,4 +32,3 @@ tblr(header-rows: 1, columns: 4,
   ..pop
 )
 
-}

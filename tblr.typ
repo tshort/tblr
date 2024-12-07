@@ -165,6 +165,19 @@
   return result
 }
 
+#let expand-positions-by-col(x, row-range, col-range, header-rows) = {
+  let result = ()
+  for (row, col) in x {
+    for icol in expand-position(col, col-range) {
+      let col-pairs = ()
+      for irow in expand-position(row, row-range) {
+        col-pairs.push((irow, icol))
+      }
+      result.push(col-pairs)
+    }
+  }
+  return result
+}
 /////////////// 
 // tblr -- main function
 ///////////////
@@ -184,13 +197,13 @@
 // `remarks`: Content to include as a comment below the table.
 // `caption`: If provided, wrap the `table` in a `figure`.
 // `placement` (default: `auto`): Passed to figure.
-// `table-fun` (default: `ztable`): Specifies the table-creation function to use.
+// `table-fun` (default: `table`): Specifies the table-creation function to use.
 
 #let tblr(header-rows: 0, 
           caption: none, 
           placement: auto, 
           remarks: none, 
-          table-fun: ztable,
+          table-fun: table,
           ..args) = {
   let a = args.pos()
   let n = args.named()
@@ -204,7 +217,7 @@
   let content = ()
   let specs = ()
   for el in a {
-    if is-type(el, "cells") or is-type(el, "body-cells") or is-type(el, "header-cells") {
+    if is-type(el, "cells") or is-type(el, "body-cells") or is-type(el, "header-cells") or is-type(el, "by-col-hook") or is-type(el, "body-by-col-hook") {
       specs.push(el)
     } else {
       content.push(el)
@@ -248,6 +261,25 @@
         }
       }
     }
+    if s._type_ in ("by-col-hook", "body-by-col-hook") {
+      let col-positions = if s._type_ == "by-col-hook" {
+        expand-positions-by-col(s.cells, range(nrows), range(ncols), header-rows)
+      } else if s._type_ == "body-by-col-hook" {
+        expand-positions-by-col(s.cells, range(header-rows, nrows), range(ncols), 0)
+      }
+      for posv in col-positions {
+        // read
+        let vec = (none,) * posv.len()
+        for (i, (row,col)) in posv.enumerate() {
+          vec.at(i) = matrix.at(row).at(col).body
+        }
+        vec = (s.fun)(vec)
+        // write
+        for (i, (row,col)) in posv.enumerate() {
+          matrix.at(row).at(col).body = vec.at(i)
+        }
+      }
+    }
   }
   // process lines
   let row-map = range(nrows)
@@ -267,6 +299,7 @@
       line-output.push(table.vline(..remove(l, ("_type_",))))
     }
   }
+  // return (matrix)
   // convert back to a table
   let (t, h) = matrix-to-table(matrix, header-rows)
   t = if h.len() > 0 {
@@ -387,3 +420,18 @@
 #let note(row, col, content) = {
 }  
 
+// 
+#let by-col-hook(..cells, fun) = {
+  (_type_: "by-col-hook", cells: cells.pos(), fun: fun)
+}
+
+#let body-by-col-hook(..cells, fun) = {
+  (_type_: "body-by-col-hook", cells: cells.pos(), fun: fun)
+}
+
+
+#tblr(columns: 3, by-col-hook((auto,1), x => x.map(y => y + "p")), ..range(8).map(str))
+
+#tblr(columns: 3, header-rows: 1, body-by-col-hook((auto,(0,2)), x => x.map(y => y + "p")), ..range(12).map(str))
+
+hj
