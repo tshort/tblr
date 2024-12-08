@@ -1,11 +1,10 @@
-#import "@preview/tblr:0.1.0": *
-// #import "../tblr.typ": *
+// #import "@preview/tblr:0.2.0": *
+#import "../tblr.typ": *
 
-#{
 // Adapted from https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs
-set page(height: auto, width: auto, margin: 0em)
+#set page(height: auto, width: auto, margin: 0em)
 
-let data = csv.decode("
+#let data = csv.decode("
 Tower Hamlets,1,3,269,9692642
 Hackney,2,2,225,7809608
 Southwark,3,12,232,7266118
@@ -18,19 +17,19 @@ Merton,9,29,113,3656112
 Croydon,10,20,127,3629066
 ").flatten()
 
-set table(stroke: none)
+#set table(stroke: none)
 
-let bar(x) = {
+#let bar(x) = {
   rect(width: int(x) / 7000000 * 2in, fill: blue, text(fill: white, x))
 }
 
-tblr(header-rows: 1, columns: 5,
+#tblr(header-rows: 1, columns: 5,
   align: center+horizon,
   // formatting directives
-  header-rows(0, fill: aqua.lighten(60%), hooks: strong),
-  body-cols(0, align: left, fill: gray.lighten(70%), hooks: strong),
-  body-cols(-1, align: left, hooks: bar),
+  rows(within: "header", 0, fill: aqua.lighten(60%), hooks: strong),
+  cols(within: "body", 0, align: left, fill: gray.lighten(70%), hooks: strong),
+  cols(within: "body", -1, align: left, hooks: bar),
   // content
   [Borough],[Trust\ rank],[Index\ rank],[Number\ of grants],[Amount approved (£)],
   ..data
-)}
+)

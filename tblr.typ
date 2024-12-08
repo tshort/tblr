@@ -1,4 +1,3 @@
-#import "@preview/zero:0.1.0": ztable
 
 /////////////// 
 // Utilities
@@ -136,7 +135,7 @@
     return rng.filter(x)
   }
   if is-type(x, "span") {
-    return range(expand-position(x.start, rng, extras: extras).at(0), expand-position(x.stop, rng, extras: extras).at(0), step: x.step)
+    return range(expand-position(x.start, rng, extras: extras).at(0), 1 + expand-position(x.stop, rng, extras: extras).at(0), step: x.step)
   }
   if type(x) == array {
     let result = ()
@@ -165,6 +164,19 @@
   return result
 }
 
+#let expand-positions-by-col(x, row-range, col-range, header-rows) = {
+  let result = ()
+  for (row, col) in x {
+    for icol in expand-position(col, col-range) {
+      let col-pairs = ()
+      for irow in expand-position(row, row-range) {
+        col-pairs.push((irow, icol))
+      }
+      result.push(col-pairs)
+    }
+  }
+  return result
+}
 /////////////// 
 // tblr -- main function
 ///////////////
@@ -177,20 +189,20 @@
 // `table.hline`, and cell contents are passed to the `table` function.
 //
 // Other arguments can be special directives to control formatting.
-// These include `cells()`, `cols()`, `rows()`, `header-rows()`, ...
+// These include `cells()`, `cols()`, `rows()`, ...
 // 
 // Named arguments specific to `tblr` include:
 // `header-rows` (default: 0): Number of header rows in the content.
 // `remarks`: Content to include as a comment below the table.
 // `caption`: If provided, wrap the `table` in a `figure`.
 // `placement` (default: `auto`): Passed to figure.
-// `table-fun` (default: `ztable`): Specifies the table-creation function to use.
+// `table-fun` (default: `table`): Specifies the table-creation function to use.
 
 #let tblr(header-rows: 0, 
           caption: none, 
           placement: auto, 
           remarks: none, 
-          table-fun: ztable,
+          table-fun: table,
           ..args) = {
   let a = args.pos()
   let n = args.named()
@@ -204,7 +216,7 @@
   let content = ()
   let specs = ()
   for el in a {
-    if is-type(el, "cells") or is-type(el, "body-cells") or is-type(el, "header-cells") {
+    if is-type(el, "cells") or is-type(el, "apply") {
       specs.push(el)
     } else {
       content.push(el)
@@ -214,13 +226,13 @@
   let nrows = matrix.len()
   // process cell-level specs
   for s in specs.rev() {
-    if s._type_ in ("cells", "header-cells", "body-cells") {
-      let positions = if s._type_ == "cells" {
-        expand-positions(s.cells, range(nrows), range(ncols), header-rows)
-      } else if s._type_ == "header-cells" {
+    if is-type(s, "cells") {
+      let positions = if s.within == "header" {
         expand-positions(s.cells, range(header-rows), range(ncols), 0)
-      } else if s._type_ == "body-cells" {
+      } else if s.within == "body" {
         expand-positions(s.cells, range(header-rows, nrows), range(ncols), 0)
+      } else {
+        expand-positions(s.cells, range(nrows), range(ncols), header-rows)
       }
       
       for (row, col) in positions {
@@ -237,7 +249,7 @@
             }
           }
         }
-        matrix.at(row).at(col).cell-fields = remove(s, ("cells", "sets", "hooks", "_type_")) + matrix.at(row).at(col).at("cell-fields", default: (:))  
+        matrix.at(row).at(col).cell-fields = remove(s, ("cells", "sets", "hooks", "within", "_type_")) + matrix.at(row).at(col).at("cell-fields", default: (:))  
         let cs = matrix.at(row).at(col).at("cell-fields", default: (:)).at("colspan", default: 1)
         for i in range(col + 1, col + cs) {
           matrix.at(row).at(i).body = none
@@ -248,25 +260,44 @@
         }
       }
     }
+    if is-type(s, "apply") {
+      let col-positions = if s.within == "body" {
+        expand-positions-by-col(s.cells, range(header-rows, nrows), range(ncols), 0)
+      } else {
+        expand-positions-by-col(s.cells, range(nrows), range(ncols), header-rows)
+      }
+      for posv in col-positions {
+        // read
+        let vec = (none,) * posv.len()
+        for (i, (row,col)) in posv.enumerate() {
+          vec.at(i) = matrix.at(row).at(col).body
+        }
+        vec = (s.fun)(vec)
+        // write
+        for (i, (row,col)) in posv.enumerate() {
+          matrix.at(row).at(col).body = vec.at(i)
+        }
+      }
+    }
   }
   // process lines
   let row-map = range(nrows)
   let line-output = ()
   for l in lines {
     if is-type(l, "hline") {
-      l = remove(l, ("_type_",))
-      l.y = expand-position(l.y, range(nrows)).at(0)
-      line-output.push(table.hline(..l))
-    }
-    if is-type(l, "header-hline") {
-      l = remove(l, ("_type_",))
-      l.y = expand-position(l.y, range(header-rows)).at(0)
+      if l.within == "header" {
+        l.y = expand-position(l.y, range(header-rows)).at(0)
+      } else {
+        l.y = expand-position(l.y, range(nrows)).at(0)
+      }
+      l = remove(l, ("_type_", "within"))
       line-output.push(table.hline(..l))
     }
     if is-type(l, "vline") {
       line-output.push(table.vline(..remove(l, ("_type_",))))
     }
   }
+  // return matrix
   // convert back to a table
   let (t, h) = matrix-to-table(matrix, header-rows)
   t = if h.len() > 0 {
@@ -315,9 +346,10 @@
 // Special arguments include directives that specify further processing. These include:
 // `hooks` -- apply the given function to the cell contents.
 // `sets` -- a list of `set` options to apply for that cell.
+// `within` -- apply row ranges to "header" or "body" if supplied
 //
-#let cells(..args) = {
-  (_type_: "cells") + args.named() + (cells: args.pos())
+#let cells(..args, within: auto) = {
+  (_type_: "cells", within: within) + args.named() + (cells: args.pos())
 }  
 
 // Directive to control formatting of columns.
@@ -332,50 +364,9 @@
   cells(..args.named(), ..args.pos().map(x => (x, auto)))
 }  
 
-// Directive to control formatting of cells within a header.
-// Like `cells` but only applies to header cells.
-#let header-cells(..args) = {
-  (_type_: "header-cells") + args.named() + (cells: args.pos())
-}  
-
-// Directive to control formatting of columns within a header.
-// Like `cols` but only applies to columns in the header.
-#let header-cols(..args) = {
-  header-cells(..args.named(), ..args.pos().map(x => (auto, x)))
-}  
-
-// Directive to control formatting of columns within a header.
-// Like `cols` but only applies to columns in the header.
-#let header-rows(..args) = {
-  header-cells(..args.named(), ..args.pos().map(x => (x, auto)))
-}  
-
-// Directive to control formatting of cells within the table body.
-// Like `cells` but only applies to cells within the table body.
-#let body-cells(..args) = {
-  (_type_: "body-cells") + args.named() + (cells: args.pos())
-}  
-
-// Directive to control formatting of columns within the table body.
-// Like `cols` but only applies to columns in the body.
-#let body-cols(..args) = {
-  body-cells(..args.named(), ..args.pos().map(x => (auto, x)))
-}  
-
-// Directive to control formatting of rows within the table body.
-// Like `rows` but only applies to rows in the body.
-#let body-rows(..args) = {
-  body-cells(..args.named(), ..args.pos().map(x => (x, auto)))
-}  
-
 // Like `table.hline` but lazy and can include indicators like `end`.
-#let hline(y: none, ..args) = {
-  (_type_: "hline", ..((y: y,) + args.named()))
-}  
-
-// Like `hline` but for use in headers.
-#let header-hline(y: none, ..args) = {
-  (_type_: "header-hline", ..((y: y,) + args.named()))
+#let hline(y: none, within: auto, ..args) = {
+  (_type_: "hline", within: within, ..((y: y,) + args.named()))
 }  
 
 // Like `table.vline` but lazy and can include indicators like `end`.
@@ -386,4 +377,9 @@
 // Reserved for the future.
 #let note(row, col, content) = {
 }  
+
+// 
+#let apply(..cells, fun, within: none) = {
+  (_type_: "apply", cells: cells.pos(), fun: fun, within: within)
+}
 
