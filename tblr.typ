@@ -1,6 +1,6 @@
 
 /////////////// 
-// Utilities
+// Utilities for internal use
 /////////////// 
 
 #let is-type(x, ..type-arg) = {
@@ -18,6 +18,16 @@
     }
   }
   d
+}
+
+#let to-text(x) = {
+  if type(x) == "string" {
+    return x
+  }
+  if type(x) == content and "text" in x.fields() {
+    return x.text
+  }
+  return none
 }
 
 /////////////// 
@@ -378,8 +388,73 @@
 #let note(row, col, content) = {
 }  
 
-// 
+// Apply `fun` columnwise to cells provided.
 #let apply(..cells, fun, within: none) = {
   (_type_: "apply", cells: cells.pos(), fun: fun, within: within)
+}
+
+// Like `apply`, but normal positional arguments are columns.
+#let col-apply(..args, fun) = {
+  apply(..args.named(), ..args.pos().map(x => (auto, x)), fun)
+}
+
+/////////////// 
+// Decimal alignment
+/////////////// 
+
+// For an array `a`, return an array with contents aligned. Rules mostly
+// follow tbl (https://typst.app/universe/package/tbl/):
+// - One position after the leftmost occurrence of the non-printing
+//   input token `marker` (default: `&`), if any is present.
+// - Otherwise, the rightmost occurrence of the `decimal`. Defaults to
+//   `.` just before a digit.
+// - Otherwise, the rightmost digit.
+// -  Otherwise, the content is aligned using `other-align` (default: `center`).
+// NOTE: needs to be used in a context.
+#let decimal-align(a, decimal: regex("\.\d"), marker: "&", other-align: center) = {
+  let result = ()
+  let max1 = 0pt
+  let max2 = 0pt
+  for x in a {
+    let xt = to-text(x)
+    let xs = ()
+    if xt == none {
+      result.push((align(other-align, x), none))
+      continue
+    } else if xt.contains(marker) {     // first marker location
+      let p = xt.position(marker)
+      xs = (xt.slice(0,p), xt.slice(p + marker.len(), xt.len())) 
+    } else if xt.contains(decimal) {    // last decimal location
+      let p = xt.matches(decimal).map(x => x.start).reduce((a,b) => calc.max(a,b))
+      xs = (xt.slice(0,p), xt.slice(p, xt.len())) 
+    } else if xt.contains(regex("\d")) { // last digit
+      let p = xt.matches(regex("\d")).map(x => x.start).reduce((a,b) => calc.max(a,b))
+      xs = (xt.slice(0,p + 1), xt.slice(p + 1, xt.len())) 
+    } else {    // nothing to align so center it
+      result.push((align(other-align, x), none))
+      continue
+    }
+    if xs.len() == 1 {
+      xs.push("")
+    }
+    let xw1 = measure(xs.at(0)).width
+    if xw1 > max1 {
+      max1 = xw1
+    }
+    let xw2 = measure(xs.at(1)).width
+    if xw2 > max2 {
+      max2 = xw2
+    }
+    result.push(xs)
+  }
+  for (i,x) in result.enumerate() {
+    if x.at(1) == none {
+      result.at(i) = x.at(0)
+    } else {
+      result.at(i) = stack(dir: ltr, box(width: max1, align(right, x.at(0))), box(width: max2, align(left, x.at(1))))
+      
+    }
+  }
+  result
 }
 

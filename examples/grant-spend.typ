@@ -5,17 +5,17 @@
 #set page(height: auto, width: auto, margin: 0em)
 
 #let data = csv.decode("
-Tower Hamlets,1,3,269,9692642
-Hackney,2,2,225,7809608
-Southwark,3,12,232,7266118
-Camden,4,14,136,6140419
-Islington,5,4,156,5424137
-Lambeth,6,8,156,5257941
-Newham,7,2,154,5217075
-Hammersmith and Fulham,8,13,109,4085708
-Merton,9,29,113,3656112
-Croydon,10,20,127,3629066
-").flatten()
+Tower Hamlets          | 1  | 3  | 269 | 9692642
+Hackney                | 2  | 2  | 225 | 7809608
+Southwark              | 3  | 12 | 232 | 7266118
+Camden                 | 4  | 14 | 136 | 6140419
+Islington              | 5  | 4  | 156 | 5424137
+Lambeth                | 6  | 8  | 156 | 5257941
+Newham                 | 7  | 2  | 154 | 5217075
+Hammersmith and Fulham | 8  | 13 | 109 | 4085708
+Merton                 | 9  | 29 | 113 | 3656112
+Croydon                | 10 | 20 | 127 | 3629066
+", delimiter: "|").flatten().map(x => x.trim())
 
 #set table(stroke: none)
 

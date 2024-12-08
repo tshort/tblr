@@ -17,13 +17,14 @@ Nigeria,131,923,142.7"
 
 #set table(stroke: none)
 
-#tblr(header-rows: 1, columns: 4,
+#context tblr(header-rows: 1, columns: 4,
   align: (left+bottom, center, center, center),
   // formatting directives
   rows(within: "header", 0, fill: aqua.lighten(60%), hooks: strong),
   cols(within: "body", 0, fill: gray.lighten(70%), hooks: strong),
   rows(within: "body", 1, 6, hooks: text.with(red)),
   cells(((2, -3), end), hooks: strong),
+  col-apply(span(1, end), decimal-align), 
   // content
   [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
   ..pop
