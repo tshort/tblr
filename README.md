@@ -64,7 +64,7 @@ These include `cells()`, `cols()`, `rows()`, `hline()`, ...
  
 Named arguments specific to `tblr` include:
 
-* `header-rows` (default: 0): Number of header rows in the content.
+* `header-rows` (default: auto): Number of header rows in the content. `auto` means determine number from header rows provided with content, otherwise zero.
 * `remarks`: Content to include as a comment below the table.
 * `caption`: If provided, wrap the `table` in a `figure`.
 * `placement` (default: `auto`): Passed to `figure`.
@@ -181,7 +181,7 @@ Here is an example:
 
 This example shows use of a custom function to add some graphical
 styling to one of the columns of a table. Adapted from
-[here](https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs).
+[here](https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs). It also shows including passing in a `table.header` with `header-rows` defaulting to `auto`.
 
 ![Example 2](examples/grant-spend.svg)
 
@@ -207,14 +207,14 @@ Croydon                | 10 | 20 | 127 | 3629066
   rect(width: int(x) / 7000000 * 2in, fill: blue, text(fill: white, x))
 }
 
-#tblr(header-rows: 1, columns: 5,
+#tblr(columns: 5,
   align: center+horizon,
   // formatting directives
-  rows(within: "header", 0, fill: aqua.lighten(60%), hooks: strong),
+  rows(within: "header", auto, fill: aqua.lighten(60%), hooks: strong),
   cols(within: "body", 0, align: left, fill: gray.lighten(70%), hooks: strong),
   cols(within: "body", -1, align: left, hooks: bar),
   // content
-  [Borough],[Trust\ rank],[Index\ rank],[Number\ of grants],[Amount approved (£)],
+  table.header([Borough],[Trust\ rank],[Index\ rank],[Number\ of grants],[Amount approved (£)]),
   ..data
 )
 ```

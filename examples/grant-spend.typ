@@ -23,13 +23,13 @@ Croydon                | 10 | 20 | 127 | 3629066
   rect(width: int(x) / 7000000 * 2in, fill: blue, text(fill: white, x))
 }
 
-#tblr(header-rows: 1, columns: 5,
+#tblr(columns: 5,
   align: center+horizon,
   // formatting directives
-  rows(within: "header", 0, fill: aqua.lighten(60%), hooks: strong),
+  rows(within: "header", auto, fill: aqua.lighten(60%), hooks: strong),
   cols(within: "body", 0, align: left, fill: gray.lighten(70%), hooks: strong),
   cols(within: "body", -1, align: left, hooks: bar),
   // content
-  [Borough],[Trust\ rank],[Index\ rank],[Number\ of grants],[Amount approved (£)],
+  table.header([Borough],[Trust\ rank],[Index\ rank],[Number\ of grants],[Amount approved (£)]),
   ..data
 )

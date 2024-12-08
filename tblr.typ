@@ -40,9 +40,14 @@
   let current-row-spans = (ncols * (0,))
   let row = 0   // row counter
   let col = 0   // column counter
+  let header-rows = 0
   for (k, val) in a.enumerate() {
     if type(val) == content and val.func() == table.header {
-      (matrix, lines) = table-to-matrix(val.fields().children, ncols)
+      (matrix, lines, _) = table-to-matrix(val.fields().children, ncols)
+      header-rows = matrix.len()
+      row = row + header-rows
+      col = 0
+      matrix.push((ncols * ((body: none),)),)
       continue
     }
     if type(val) == content and val.func() == table.hline {
@@ -94,7 +99,7 @@
       col = col + 1
     }
   }
-  (matrix, lines)
+  (matrix, lines, header-rows)
 } 
 
 #let matrix-to-table(matrix, header-rows) = {
@@ -202,13 +207,13 @@
 // These include `cells()`, `cols()`, `rows()`, ...
 // 
 // Named arguments specific to `tblr` include:
-// `header-rows` (default: 0): Number of header rows in the content.
+// `header-rows` (default: auto): Number of header rows in the content.
 // `remarks`: Content to include as a comment below the table.
 // `caption`: If provided, wrap the `table` in a `figure`.
 // `placement` (default: `auto`): Passed to figure.
 // `table-fun` (default: `table`): Specifies the table-creation function to use.
 
-#let tblr(header-rows: 0, 
+#let tblr(header-rows: auto, 
           caption: none, 
           placement: auto, 
           remarks: none, 
@@ -232,7 +237,10 @@
       content.push(el)
     }
   }
-  let (matrix, lines) = table-to-matrix(content, ncols)
+  let (matrix, lines, header-rows-in-content) = table-to-matrix(content, ncols)
+  if header-rows == auto {
+    header-rows = header-rows-in-content
+  }
   let nrows = matrix.len()
   // process cell-level specs
   for s in specs.rev() {
