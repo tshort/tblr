@@ -10,6 +10,8 @@
   return none
 }
 
+// For an array `a`, return an array with contents aligned on `marker`.
+// Needs to be used in a context.
 #let fmt(a, marker: ".") = {
   let result = ()
   let max1 = 0pt
@@ -77,13 +79,6 @@ Nigeria,131,923,142.7"
   ..pop
 )
 
-
-// #tblr(columns: 3, header-rows: 1, apply(within: "body", (auto,(0,2)), x => x.map(y => y + "p")), ..range(12).map(str))
-
-
-// #tblr(columns: 3, header-rows: 1, cols(within: "body", 0, end, fill: blue), ..range(12).map(str))
-
-
-// // sum the column
-// #tblr(columns: 3, apply((auto,auto), x => {x.at(x.len() - 1) = str(x.slice(0,-1).map(float).sum()); return x}), ..range(12).map(str),[0],[0],[0])
-// )
+// Note that the `apply` directive must come after the formatting directives.
+// That means it is applied first before any of the formatting directives,
+// and the contents are still strings.

@@ -251,3 +251,5 @@ Nigeria,131,923,142.7"
   ..pop
 )
 ```
+[Here](examples/decimal-align.typ) is another example of applying custom decimal alignment.
+
