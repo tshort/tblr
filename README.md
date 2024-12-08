@@ -278,3 +278,16 @@ tables with a booktabs style. Here's an example:
 )
 ```
 
+## Changelog
+
+### v0.2.0
+
+* Remove functions like `body-cells`. Use `cells(within: "body"...)` instead.
+* Add `apply` and `col-apply`to apply a function column wise.
+* Fix a bug in span on the `to` argument.
+* Add `decimal-align` to align on decimals.
+* Change the default in `header-rows` to `auto`. Traverse into headers provided with content. 
+
+### v0.1.0
+
+* Initial release
