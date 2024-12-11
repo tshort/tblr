@@ -212,12 +212,21 @@
 // `caption`: If provided, wrap the `table` in a `figure`.
 // `placement` (default: `auto`): Passed to figure.
 // `table-fun` (default: `table`): Specifies the table-creation function to use.
+// `note-numbering` (default: "a"): Numbering for table notes.
+// `note-fun` (default: `super`): Formatting function for note indicators. 
+// `ret`: If provided, the function returns a dictionary with 
+//    components. Options include:
+//      "components": includes "table", "remarks", and more
+//      "arguments": as above but includes arguments passed to `table-fun`
 
 #let tblr(header-rows: auto, 
           caption: none, 
           placement: auto, 
           remarks: none, 
           table-fun: table,
+          note-numbering: "a",
+          note-fun: super,
+          ret: auto,
           ..args) = {
   let a = args.pos()
   let n = args.named()
@@ -231,7 +240,7 @@
   let content = ()
   let specs = ()
   for el in a {
-    if is-type(el, "cells") or is-type(el, "apply") {
+    if is-type(el, "cells") or is-type(el, "apply") or is-type(el, "note") {
       specs.push(el)
     } else {
       content.push(el)
@@ -242,6 +251,8 @@
     header-rows = header-rows-in-content
   }
   let nrows = matrix.len()
+  let note-num = specs.filter(x => is-type(x, "note")).len() // weird handling due to reverse processing of specs
+  let notes = ()
   // process cell-level specs
   for s in specs.rev() {
     if is-type(s, "cells") {
@@ -297,6 +308,15 @@
         }
       }
     }
+    if is-type(s, "note") {
+      let positions = expand-positions(s.cells, range(nrows), range(ncols), 0)
+      let num = note-fun(if s.num != none {s.num} else {numbering(note-numbering, note-num)})
+      notes.insert(0, (num, s.body))
+      for (row, col) in positions {
+        matrix.at(row).at(col).body = matrix.at(row).at(col).body + num
+      }
+      note-num = note-num - 1
+    }
   }
   // process lines
   let row-map = range(nrows)
@@ -318,13 +338,26 @@
   // return matrix
   // convert back to a table
   let (t, h) = matrix-to-table(matrix, header-rows)
-  t = if h.len() > 0 {
-    table-fun(..n, ..line-output, table.header(..h), ..t)
+  let args = if h.len() > 0 {
+    arguments(..n, ..line-output, table.header(..h), ..t)
   } else {
-    table-fun(..n, ..line-output, ..t)
+    arguments(..n, ..line-output, ..t)
   }
-  if remarks != none {
-    t = context block([#t #align(left,remarks)], width: measure(t).width)
+  if ret == "arguments" {
+    return (arguments: args, remarks: remarks, notes: notes, 
+            caption: caption, placement: placement)
+  }
+  t = table-fun(..args)
+  if ret == "components" {
+    return (table: t, remarks: remarks, notes: notes, 
+            caption: caption, placement: placement)
+  }
+  if remarks != none or notes.len() > 0 {
+    t = context stack(t, v(0.3em),
+      align(left, 
+        box(width: measure(t).width, 
+          grid(columns: 2, ..notes.flatten(), 
+               [], remarks, inset: (y: 0.3em))))) 
   }
   if caption != none {
     t = figure(caption: caption, placement: placement, t, kind: table)
@@ -392,8 +425,16 @@
   (_type_: "vline", ..((x: x,) + args.named()))
 }  
 
-// Reserved for the future.
-#let note(row, col, content) = {
+// Add a note to cells given. The note is positioned at the bottom of the table before remarks.
+// Positional arguments given as arrays are the positional indicators as with `cells`.
+// If one argument positional argument has content, it's taken as the body of the note.
+// If two positional arguments have content, the first is the marker for the note, and the second is the body of the note.
+#let note(..args) = {
+  let cells = args.pos().filter(x => type(x) == array)
+  let content = args.pos().filter(x => type(x) != array)
+  let body = content.last()
+  let num = if content.len() == 2 {content.first()} else {none}
+  (_type_: "note", cells: cells, body: body, num: num)
 }  
 
 // Apply `fun` columnwise to cells provided.
