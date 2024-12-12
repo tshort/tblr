@@ -24,7 +24,8 @@ Nigeria,131,923,142.7"
   cols(within: "body", 0, fill: gray.lighten(70%), hooks: strong),
   rows(within: "body", 1, 6, hooks: text.with(red)),
   cells(((2, -3), end), hooks: strong),
-  col-apply(span(1, end), decimal-align), 
+  col-apply(within: "body", span(1, end), decimal-align), 
+  note((-3, 3), "Highest value"),
   // content
   [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
   ..pop

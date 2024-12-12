@@ -451,6 +451,67 @@
 // Decimal alignment
 /////////////// 
 
+// Returns an array with two components.
+// If there's nothing to split, the content is returned as the first with none as the second.
+#let split-content(x, marker: "&", direction: ltr, hide: false, offset: 0) = {
+  let sc = split-content.with(marker: marker, direction: direction, hide: hide, offset: offset)
+  if type(x) == "string" {
+    if x.contains(marker) {
+      let p = x.matches(marker).map(y => y.start).reduce((a,b) => if direction == ltr {calc.min(a,b)} else {calc.max(a,b)})
+      return (x.slice(0,p + offset), x.slice(p + offset + if hide {marker.len()} else {0}, x.len())) 
+    } else {
+      return (x, none)
+    }
+  }
+  if type(x) == content {
+    if x.has("body") {
+      let xf = x.fields()
+      let xb = xf.remove("body")
+      let (one, two) = sc(xb)
+      if two != none {
+        return ((x.func())(one, ..xf), (x.func())(two, ..xf))
+      } else {
+        return (x, none)
+      }
+    } else if x.has("text") {
+      return sc(x.text)
+    } else if x.has("children") {
+      let (one, two) = sc(x.children)
+      if two != none {
+        return ((x.func())(one), (x.func())(two))
+      } else {
+        return (x, none)
+      }
+    } 
+  }
+  if type(x) == "array" {
+    let splits = x.map(el => sc(el))
+    let idx = if direction == ltr {
+      splits.position(el => el.at(1) != none)
+    } else {
+      let last = none
+      for (i, el) in splits.enumerate() {
+        if el.at(1) != none {
+          last = i
+        }
+      }
+      last
+    }
+    if idx != none {
+      let (one, two) = sc(x.at(idx))
+      let a0 = x.slice(0, idx)
+      if one != "" {a0.push(one)}
+      let a1 = x.slice(idx + 1, x.len())
+      if two != "" {a1.insert(0, two)}
+      return (a0, a1)
+    } else {
+      return (x, none)
+    }
+  }
+  return (x, none)
+}
+
+
 // For an array `a`, return an array with contents aligned. Rules mostly
 // follow tbl (https://typst.app/universe/package/tbl/):
 // - One position after the leftmost occurrence of the non-printing
@@ -465,23 +526,23 @@
   let max1 = 0pt
   let max2 = 0pt
   for x in a {
-    let xt = to-text(x)
     let xs = ()
-    if xt == none {
-      result.push((align(other-align, x), none))
-      continue
-    } else if xt.contains(marker) {     // first marker location
-      let p = xt.position(marker)
-      xs = (xt.slice(0,p), xt.slice(p + marker.len(), xt.len())) 
-    } else if xt.contains(decimal) {    // last decimal location
-      let p = xt.matches(decimal).map(x => x.start).reduce((a,b) => calc.max(a,b))
-      xs = (xt.slice(0,p), xt.slice(p, xt.len())) 
-    } else if xt.contains(regex("\d")) { // last digit
-      let p = xt.matches(regex("\d")).map(x => x.start).reduce((a,b) => calc.max(a,b))
-      xs = (xt.slice(0,p + 1), xt.slice(p + 1, xt.len())) 
-    } else {    // nothing to align so center it
-      result.push((align(other-align, x), none))
-      continue
+    let xs-try = split-content(x, direction: ltr, hide: true, marker: marker)
+    if xs-try.at(1) != none {       // found first marker
+        xs = xs-try
+    } else {           
+      xs-try = split-content(x, direction: rtl, hide: false, marker: decimal)
+      if xs-try.at(1) != none {     // found last decimal location
+        xs = xs-try
+      } else {
+        xs-try = split-content(x, direction: rtl, hide: false, marker: regex("\d"), offset: 1)
+        if xs-try.at(1) != none {   // found last digit
+          xs = xs-try
+        } else {                    // nothing found, so center
+          result.push((align(other-align, x), none))
+          continue
+        }
+      }
     }
     if xs.len() == 1 {
       xs.push("")

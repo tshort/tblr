@@ -35,7 +35,8 @@ Nigeria,131,923,142.7"
   cols(within: "body", 0, fill: gray.lighten(70%), hooks: strong),
   rows(within: "body", 1, 6, hooks: text.with(red)),
   cells(((2, -3), end), hooks: strong),
-  col-apply(span(1, end), decimal-align), 
+  col-apply(within: "body", span(1, end), decimal-align), 
+  note((-3, 3), "Highest value"),
   // content
   [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
   ..pop
@@ -159,6 +160,10 @@ aligned. Rules mostly follow
 - Otherwise, the rightmost digit.
 - Otherwise, the content is aligned using `other-align` (default:
   `center`).
+
+Alignment tries to work with formatted content and not just strings.
+That means it should work with footnotes, basic formatting, and basic
+equations. This is tricky, so there are probably bugs.
 
 Note that `decimal-align` needs to be used in a context. Common usage is
 to apply that to `tblr` and use `decimal-align` with `apply`. Note that
