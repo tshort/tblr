@@ -313,6 +313,7 @@ Croydon                | 10 | 20 | 127 | 3629066
 ### v0.x.x
 
 * Add `note` for table notes.
+* Improve decimal alignment to work with notes and other formatting.
 * Add `ret` option to `tblr` to allow returning components.
 
 ### v0.2.0
