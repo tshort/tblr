@@ -212,12 +212,21 @@
 // `caption`: If provided, wrap the `table` in a `figure`.
 // `placement` (default: `auto`): Passed to figure.
 // `table-fun` (default: `table`): Specifies the table-creation function to use.
+// `note-numbering` (default: "a"): Numbering for table notes.
+// `note-fun` (default: `super`): Formatting function for note indicators. 
+// `ret`: If provided, the function returns a dictionary with 
+//    components. Options include:
+//      "components": includes "table", "remarks", and more
+//      "arguments": as above but includes arguments passed to `table-fun`
 
 #let tblr(header-rows: auto, 
           caption: none, 
           placement: auto, 
           remarks: none, 
           table-fun: table,
+          note-numbering: "a",
+          note-fun: super,
+          ret: auto,
           ..args) = {
   let a = args.pos()
   let n = args.named()
@@ -231,7 +240,7 @@
   let content = ()
   let specs = ()
   for el in a {
-    if is-type(el, "cells") or is-type(el, "apply") {
+    if is-type(el, "cells") or is-type(el, "apply") or is-type(el, "note") {
       specs.push(el)
     } else {
       content.push(el)
@@ -242,6 +251,8 @@
     header-rows = header-rows-in-content
   }
   let nrows = matrix.len()
+  let note-num = specs.filter(x => is-type(x, "note")).len() // weird handling due to reverse processing of specs
+  let notes = ()
   // process cell-level specs
   for s in specs.rev() {
     if is-type(s, "cells") {
@@ -297,6 +308,15 @@
         }
       }
     }
+    if is-type(s, "note") {
+      let positions = expand-positions(s.cells, range(nrows), range(ncols), 0)
+      let num = note-fun(if s.num != none {s.num} else {numbering(note-numbering, note-num)})
+      notes.insert(0, (num, s.body))
+      for (row, col) in positions {
+        matrix.at(row).at(col).body = matrix.at(row).at(col).body + num
+      }
+      note-num = note-num - 1
+    }
   }
   // process lines
   let row-map = range(nrows)
@@ -318,13 +338,26 @@
   // return matrix
   // convert back to a table
   let (t, h) = matrix-to-table(matrix, header-rows)
-  t = if h.len() > 0 {
-    table-fun(..n, ..line-output, table.header(..h), ..t)
+  let args = if h.len() > 0 {
+    arguments(..n, ..line-output, table.header(..h), ..t)
   } else {
-    table-fun(..n, ..line-output, ..t)
+    arguments(..n, ..line-output, ..t)
   }
-  if remarks != none {
-    t = context block([#t #align(left,remarks)], width: measure(t).width)
+  if ret == "arguments" {
+    return (arguments: args, remarks: remarks, notes: notes, 
+            caption: caption, placement: placement)
+  }
+  t = table-fun(..args)
+  if ret == "components" {
+    return (table: t, remarks: remarks, notes: notes, 
+            caption: caption, placement: placement)
+  }
+  if remarks != none or notes.len() > 0 {
+    t = context stack(t, v(0.3em),
+      align(left, 
+        box(width: measure(t).width, 
+          grid(columns: 2, ..notes.flatten(), 
+               [], remarks, inset: (y: 0.3em))))) 
   }
   if caption != none {
     t = figure(caption: caption, placement: placement, t, kind: table)
@@ -392,8 +425,16 @@
   (_type_: "vline", ..((x: x,) + args.named()))
 }  
 
-// Reserved for the future.
-#let note(row, col, content) = {
+// Add a note to cells given. The note is positioned at the bottom of the table before remarks.
+// Positional arguments given as arrays are the positional indicators as with `cells`.
+// If one argument positional argument has content, it's taken as the body of the note.
+// If two positional arguments have content, the first is the marker for the note, and the second is the body of the note.
+#let note(..args) = {
+  let cells = args.pos().filter(x => type(x) == array)
+  let content = args.pos().filter(x => type(x) != array)
+  let body = content.last()
+  let num = if content.len() == 2 {content.first()} else {none}
+  (_type_: "note", cells: cells, body: body, num: num)
 }  
 
 // Apply `fun` columnwise to cells provided.
@@ -410,6 +451,67 @@
 // Decimal alignment
 /////////////// 
 
+// Returns an array with two components.
+// If there's nothing to split, the content is returned as the first with none as the second.
+#let split-content(x, marker: "&", direction: ltr, hide: false, offset: 0) = {
+  let sc = split-content.with(marker: marker, direction: direction, hide: hide, offset: offset)
+  if type(x) == "string" {
+    if x.contains(marker) {
+      let p = x.matches(marker).map(y => y.start).reduce((a,b) => if direction == ltr {calc.min(a,b)} else {calc.max(a,b)})
+      return (x.slice(0,p + offset), x.slice(p + offset + if hide {marker.len()} else {0}, x.len())) 
+    } else {
+      return (x, none)
+    }
+  }
+  if type(x) == content {
+    if x.has("body") {
+      let xf = x.fields()
+      let xb = xf.remove("body")
+      let (one, two) = sc(xb)
+      if two != none {
+        return ((x.func())(one, ..xf), (x.func())(two, ..xf))
+      } else {
+        return (x, none)
+      }
+    } else if x.has("text") {
+      return sc(x.text)
+    } else if x.has("children") {
+      let (one, two) = sc(x.children)
+      if two != none {
+        return ((x.func())(one), (x.func())(two))
+      } else {
+        return (x, none)
+      }
+    } 
+  }
+  if type(x) == "array" {
+    let splits = x.map(el => sc(el))
+    let idx = if direction == ltr {
+      splits.position(el => el.at(1) != none)
+    } else {
+      let last = none
+      for (i, el) in splits.enumerate() {
+        if el.at(1) != none {
+          last = i
+        }
+      }
+      last
+    }
+    if idx != none {
+      let (one, two) = sc(x.at(idx))
+      let a0 = x.slice(0, idx)
+      if one != "" {a0.push(one)}
+      let a1 = x.slice(idx + 1, x.len())
+      if two != "" {a1.insert(0, two)}
+      return (a0, a1)
+    } else {
+      return (x, none)
+    }
+  }
+  return (x, none)
+}
+
+
 // For an array `a`, return an array with contents aligned. Rules mostly
 // follow tbl (https://typst.app/universe/package/tbl/):
 // - One position after the leftmost occurrence of the non-printing
@@ -424,23 +526,23 @@
   let max1 = 0pt
   let max2 = 0pt
   for x in a {
-    let xt = to-text(x)
     let xs = ()
-    if xt == none {
-      result.push((align(other-align, x), none))
-      continue
-    } else if xt.contains(marker) {     // first marker location
-      let p = xt.position(marker)
-      xs = (xt.slice(0,p), xt.slice(p + marker.len(), xt.len())) 
-    } else if xt.contains(decimal) {    // last decimal location
-      let p = xt.matches(decimal).map(x => x.start).reduce((a,b) => calc.max(a,b))
-      xs = (xt.slice(0,p), xt.slice(p, xt.len())) 
-    } else if xt.contains(regex("\d")) { // last digit
-      let p = xt.matches(regex("\d")).map(x => x.start).reduce((a,b) => calc.max(a,b))
-      xs = (xt.slice(0,p + 1), xt.slice(p + 1, xt.len())) 
-    } else {    // nothing to align so center it
-      result.push((align(other-align, x), none))
-      continue
+    let xs-try = split-content(x, direction: ltr, hide: true, marker: marker)
+    if xs-try.at(1) != none {       // found first marker
+        xs = xs-try
+    } else {           
+      xs-try = split-content(x, direction: rtl, hide: false, marker: decimal)
+      if xs-try.at(1) != none {     // found last decimal location
+        xs = xs-try
+      } else {
+        xs-try = split-content(x, direction: rtl, hide: false, marker: regex("\d"), offset: 1)
+        if xs-try.at(1) != none {   // found last digit
+          xs = xs-try
+        } else {                    // nothing found, so center
+          result.push((align(other-align, x), none))
+          continue
+        }
+      }
     }
     if xs.len() == 1 {
       xs.push("")

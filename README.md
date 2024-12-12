@@ -35,7 +35,8 @@ Nigeria,131,923,142.7"
   cols(within: "body", 0, fill: gray.lighten(70%), hooks: strong),
   rows(within: "body", 1, 6, hooks: text.with(red)),
   cells(((2, -3), end), hooks: strong),
-  col-apply(span(1, end), decimal-align), 
+  col-apply(within: "body", span(1, end), decimal-align), 
+  note((-3, 3), "Highest value"),
   // content
   [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
   ..pop
@@ -69,7 +70,15 @@ Named arguments specific to `tblr` include:
 * `caption`: If provided, wrap the `table` in a `figure`.
 * `placement` (default: `auto`): Passed to `figure`.
 * `table-fun` (default: `table`): Specifies the table-creation function to use.
+* `note-numbering` (default: "a"): Numbering for table notes.
+* `note-fun` (default: `super`): Formatting function for note indicators. 
+* `ret`: If provided, `tblr` returns a dictionary with 
+components. Options include:
+  * "components": includes "table", "remarks", and more.
+  * "arguments": as above but includes arguments passed to `table-fun`.
 
+  Because `ret` relies on internals, it is not guaranteed to be stable
+  with version changes.
 
 ### `cells` and other special formatting directives
 
@@ -105,6 +114,14 @@ Variations of `cells` include the following functions:
   are one or more column indicators. All rows are included.
 * `rows`: Control formatting of rows. Normal positional arguments
   are one or more row indicators. All columns are included.
+
+A directive is available to add table notes. `note` is a function with
+positional arguments. Notes are positioned at the bottom of the table
+before remarks. Arguments given as arrays indicating which cells to
+apply the note to (same format as `cells`). If one argument positional
+argument has content, it's taken as the body of the note. If two
+positional arguments have content, the first is the marker for the note,
+and the second is the body of the note.
 
 Several directives are available to control horizontal and vertical
 lines. These are like `table.hline` and `table.vline`, but they can
@@ -144,6 +161,10 @@ aligned. Rules mostly follow
 - Otherwise, the content is aligned using `other-align` (default:
   `center`).
 
+Alignment tries to work with formatted content and not just strings.
+That means it should work with footnotes, basic formatting, and basic
+equations. This is tricky, so there are probably bugs.
+
 Note that `decimal-align` needs to be used in a context. Common usage is
 to apply that to `tblr` and use `decimal-align` with `apply`. Note that
 the `apply` directive must come after other formatting directives. That
@@ -178,6 +199,74 @@ Here is an example:
 
 
 ## More Examples
+
+### Booktabs
+
+This example tries to mimic [booktabs](https://ctan.org/pkg/booktabs).
+Replicating booktabs with Typst tables is a bit fiddly. `table.hline`
+works fine, but adjusting the spacings between rule locations and rows
+is tough. It'd be great to have [this
+feature](https://github.com/typst/typst/issues/4743) to adjust spacing
+around `hlines`. The approach below adjusts insets to make the spacing
+between rows nicer. The `column-gutter` is needed for
+separation of the rules between the two column blocks. This example also 
+shows the use of `caption`, `remarks`, and `note`.
+
+![Example 3](examples/booktabs.svg)
+
+```typ
+#import "@preview/tblr:0.2.0": *
+
+#tblr(columns: 7, header-rows: 2,
+  stroke: none,
+  // combine header cells
+  cells((0, (1,4)), colspan: 3, stroke: (bottom: 0.03em)),
+  column-gutter: 0.6em,
+  // booktabs style rules
+  rows(within: "header", auto, inset: (y: 0.5em)),
+  rows(within: "header", auto, align: center),
+  hline(within: "header", y: 0, stroke: 0.08em),
+  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
+  rows(within: "body", 0, inset: (top: 0.5em)),
+  hline(y: end, position: bottom, stroke: 0.08em),
+  rows(end, inset: (bottom: 0.5em)),
+  // table notes, remarks, and caption
+  note((1, (1,4)), [$m v$ is in kg·m².]),
+  note((1, (3,6)), [Time is in secs.]),
+  note(sym.dagger, (2, 0), [Another note.]),
+  remarks: [_Note:_ ] + lorem(18),
+  caption: [This is a caption],
+  note-fun: x => super(text(fill: blue, x)),
+  note-numbering: "a",
+  // content
+  [], [tol $= mu_"single"$], [], [], [tol $= mu_"double"$], [], [],
+  [], [$m v$], [Rel.~err], [Time], [$m v$], [Rel.~err], [Time], 
+  [trigmv],  [11034], [1.3e-7], [3.9], [15846], [2.7e-11], [5.6], 
+  [trigexpmv], [21952], [1.3e-7], [6.2], [31516], [2.7e-11], [8.8], 
+  [trigblock], [15883], [5.2e-8], [7.1], [32023], [1.1e-11], [1.4e1], 
+  [expleja], [11180], [8.0e-9], [4.3], [17348], [1.5e-11], [6.6])
+  ```
+
+The approach above is a bit cumbersome, but the formatting directives
+can be used as part of a wrapper function if you want to create many
+tables with a booktabs style. Here's an example:
+
+```typ
+#let booktbl = tblr.with(
+  stroke: none,
+  column-gutter: 0.6em,
+  // booktabs style rules
+  rows(within: "header", auto, inset: (y: 0.5em)),
+  rows(within: "header", auto, align: center),
+  hline(within: "header", y: 0, stroke: 0.08em),
+  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
+  rows(within: "body", 0, inset: (top: 0.5em)),
+  hline(y: end, position: bottom, stroke: 0.08em),
+  rows(end, inset: (bottom: 0.5em)),
+)
+```
+
+### Graphical Styling
 
 This example shows use of a custom function to add some graphical
 styling to one of the columns of a table. Adapted from
@@ -219,66 +308,13 @@ Croydon                | 10 | 20 | 127 | 3629066
 )
 ```
 
-This example tries to mimic [booktabs](https://ctan.org/pkg/booktabs).
-Replicating booktabs with Typst tables is a bit fiddly. `table.hline`
-works fine, but adjusting the spacings between rule locations and rows
-is tough. It'd be great to have [this
-feature](https://github.com/typst/typst/issues/4743) to adjust spacing
-around `hlines`. The approach below adjusts insets to make the spacing
-between rows nicer. The `column-gutter` is needed for
-separation of the rules between the two column blocks. This example also 
-shows the use of `caption` and `remarks`.
-
-![Example 3](examples/booktabs.svg)
-
-```typ
-#import "@preview/tblr:0.2.0": *
-
-#tblr(columns: 7, header-rows: 2,
-  stroke: none,
-  // combine header cells
-  cells((0, (1,4)), colspan: 3, stroke: (bottom: 0.03em)),
-  column-gutter: 0.6em,
-  // booktabs style rules
-  rows(within: "header", auto, inset: (y: 0.5em)),
-  rows(within: "header", auto, align: center),
-  hline(within: "header", y: 0, stroke: 0.08em),
-  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
-  rows(within: "body", 0, inset: (top: 0.5em)),
-  hline(y: end, position: bottom, stroke: 0.08em),
-  rows(end, inset: (bottom: 0.5em)),
-  // table note and caption
-  remarks: [Note: ] + lorem(18),
-  caption: [This is a caption],
-  // content
-  [], [tol $= mu_"single"$], [], [], [tol $= mu_"double"$], [], [],
-  [], [$m v$ ], [Rel.~err], [Time   ], [$m v$ ], [Rel.~err], [Time], 
-  [trigmv   ],  [11034], [1.3e-7], [3.9], [15846], [2.7e-11], [5.6 ], 
-  [trigexpmv], [21952], [1.3e-7], [6.2], [31516], [2.7e-11], [8.8 ], 
-  [trigblock], [15883], [5.2e-8], [7.1], [32023], [1.1e-11], [1.4e1], 
-  [expleja  ], [11180], [8.0e-9], [4.3], [17348], [1.5e-11], [6.6 ])
- ```
-
-The approach above is a bit cumbersome, but the formatting directives
-can be used as part of a wrapper function if you want to create many
-tables with a booktabs style. Here's an example:
-
-```typ
-#let booktbl = tblr.with(
-  stroke: none,
-  column-gutter: 0.6em,
-  // booktabs style rules
-  rows(within: "header", auto, inset: (y: 0.5em)),
-  rows(within: "header", auto, align: center),
-  hline(within: "header", y: 0, stroke: 0.08em),
-  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
-  rows(within: "body", 0, inset: (top: 0.5em)),
-  hline(y: end, position: bottom, stroke: 0.08em),
-  rows(end, inset: (bottom: 0.5em)),
-)
-```
-
 ## Changelog
+
+### v0.x.x
+
+* Add `note` for table notes.
+* Improve decimal alignment to work with notes and other formatting.
+* Add `ret` option to `tblr` to allow returning components.
 
 ### v0.2.0
 
