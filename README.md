@@ -144,6 +144,9 @@ column indicator.
 Note that the order of formatting directives matters. These are
 processed in reverse order, so later entries override earlier entries.
 
+### Data Utilities
+
+
 ### Decimal Alignment
 
 ```typ
@@ -173,7 +176,7 @@ and the contents are still strings.
 
 Here is an example:
 
-![Alignment Example](examples/decimal-align.svg)
+![Decimal Alignment](examples/decimal-align.svg)
 
 ```typ
 #context tblr(columns: 1,
@@ -196,7 +199,9 @@ Here is an example:
 )
 ```
 
+### General Alignment Utilities
 
+![Alignment Example](examples/general-align.svg)
 
 ## More Examples
 
@@ -310,10 +315,12 @@ Croydon                | 10 | 20 | 127 | 3629066
 
 ## Changelog
 
-### v0.x.x
+### v0.3.0
 
 * Add `note` for table notes.
 * Improve decimal alignment to work with notes and other formatting.
+* Add general alignment utilities, including `split-and-align`.
+* Add data utilities `from-csv` and `dataframe-to-table`.
 * Add `ret` option to `tblr` to allow returning components.
 
 ### v0.2.0
