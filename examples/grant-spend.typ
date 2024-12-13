@@ -4,7 +4,7 @@
 // Adapted from https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs
 #set page(height: auto, width: auto, margin: 0em)
 
-#let data = csv.decode("
+#let data = from-csv(delimiter: "|", "
 Tower Hamlets          | 1  | 3  | 269 | 9692642
 Hackney                | 2  | 2  | 225 | 7809608
 Southwark              | 3  | 12 | 232 | 7266118
@@ -15,7 +15,7 @@ Newham                 | 7  | 2  | 154 | 5217075
 Hammersmith and Fulham | 8  | 13 | 109 | 4085708
 Merton                 | 9  | 29 | 113 | 3656112
 Croydon                | 10 | 20 | 127 | 3629066
-", delimiter: "|").flatten().map(x => x.trim())
+")
 
 #set table(stroke: none)
 

@@ -6,7 +6,7 @@
 
 #show table: set text(number-type: "lining", number-width: "tabular")
 
-#let pop = csv.decode("
+#let pop = from-csv("
 China,1313,9596,136.9
 India,1095,3287,333.2
 United States,298,9631,31.0
@@ -16,7 +16,7 @@ Pakistan,165,803,206.2
 Bangladesh,147,144,1023.4
 Russia,142,17075,8.4
 Nigeria,131,923,142.7"
-).flatten()
+)
 
 #set table(stroke: none)
 
