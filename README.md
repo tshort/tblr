@@ -1,4 +1,4 @@
-# `tblr` — Table generation helpers for Typst
+# `tblr` — Table generation and alignment helpers for Typst
 
 `tblr` provides helper functions to better control table formatting.
 `tblr` was inspired by the LaTeX
@@ -427,6 +427,7 @@ Croydon                | 10 | 20 | 127 | 3629066
 * Add general alignment utilities, including `split-and-align`.
 * Add data utilities `from-csv` and `dataframe-to-table`.
 * Add `ret` option to `tblr` to allow returning components.
+* Add tests.
 
 ### v0.2.0
 
