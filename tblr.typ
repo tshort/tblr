@@ -475,6 +475,13 @@
       }
     } else if x.has("text") {
       return sc(x.text)
+    } else if x.has("child") {
+      let (one, two) = sc(x.child)
+      if two != none {
+        return ((x.func())(one, x.styles), (x.func())(two, x.styles))
+      } else {
+        return (x, none)
+      }
     } else if x.has("children") {
       let (one, two) = sc(x.children)
       if two != none {
