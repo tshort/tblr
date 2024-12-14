@@ -146,6 +146,25 @@ processed in reverse order, so later entries override earlier entries.
 
 ### Data Utilities
 
+```typ
+#from-csv(x, delimiter: ",", flatten: true, trim: true, evaluate: false)
+```
+Converts string `x` into an array. This is a thin wrapper over
+`csv.decode`. Options include:
+- `delimiter`: default: ","
+- `flatten`: default: `true`: Flatten the result.
+- `trim`: default: `true`: Trim each string.
+- `evaluate`: default: `false`: `eval` each string to convert each to content.
+
+```typ
+#dataframe-to-table(df, include-header: true)
+```
+Convert `df` from a dataframe to a flat array suitable to passing to
+`table`. `df` is expected to be a dictionary in dataframe style where
+each component is a columnar array. If `include-headers` is `true`, the
+keys of the dictionary are included on the first row of the table
+returned. 
+
 
 ### Decimal Alignment
 
@@ -201,7 +220,67 @@ Here is an example:
 
 ### General Alignment Utilities
 
+```typ
+#split-and-align(x, format: (), align: ())
+```
+Given an array of content `x`, split it according to `format`, and then
+align them based on `align`. 
+* `format`: an array of regex strings. Each string is the point at which
+  the content is split (on the right side of the regex).  
+  Each of these splits `x` sequentially from left to right.
+  If the regex doesn't match, the "cell" is left blank, and matching
+  continues with the next regex.
+* `align` is an array of `left` or `right` designations for each
+  component. The length of `align` should be one longer than the length
+  of `format`.
+
+`split-and-align` must be used in a context. This function will traverse
+into content, including equations. If the content has contexts, the
+splitting will not work with that.
+
+Here is an example. It also shows usage of `dataframe-to-table`.
+
 ![Alignment Example](examples/general-align.svg)
+
+```typ
+#let df = (
+  Polar: ($-130.5$, $50.2∠120.3°$, $100∠-120°$, $2.3∠1.2°$),
+  Complex: ($130.5$, $50.2 + j 90.3$, $100 - j 110$, $-90 - j 120$),
+  "Fancy Numbers": ($(4.23 ± 0.01) times 10^2$, $-25.23 ± 10.1$, $1.23 times 10^2$, $0.5$),
+)
+
+#let align-polar = split-and-align.with(
+  //          50  .2         ∠      120  .3°    
+  format: ("\d+", "[^∠]*", "∠",   "\d+"), 
+  align:  (right, left,    right, right, left))
+  // Regex meanings:
+  // \d+:   one or more digits
+  // [^∠]*: anything but ∠
+  // ∠:     ∠
+  // \d+:   one or more digits
+  // The last element is everything after the last match.
+
+#let align-complex = split-and-align.with(
+  format: ("\d+", "[^+−-]*",   ".*j", "\d+"), 
+  align:  (right, left,        right, right, left))
+
+#let align-numbers = split-and-align.with(
+  //                 (      4  .23         ±          0  .01             )    ×        10  ^2
+  format: ("[^\d+−-]*", "\d+", "[^± ]*", "±",   "[\d]+", "[.\d]*", "[^×]*", "×",    "\d+"), 
+  align:  (right,       right, left,     right, right,   left,     right,   right,  right, left))
+
+#context tblr(columns: 3,
+  header-rows: 1, column-gutter: 3em,
+  align: center, inset: 3pt, stroke: none,
+  rows(0, stroke: (bottom: 1pt)),
+  col-apply(within: "body", 0, align-polar),
+  col-apply(within: "body", 1, align-complex),
+  col-apply(within: "body", 2, align-numbers),
+  // content
+  ..dataframe-to-table(df)
+)
+
+```
 
 ## More Examples
 
