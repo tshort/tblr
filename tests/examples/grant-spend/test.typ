@@ -1,5 +1,10 @@
-#import "../tblr.typ": *
 
+                #import "/tblr.typ": *
+          
+                #set page(height: auto, width: auto, margin: 2pt)
+                #show figure.where(kind: table): set figure.caption(position: top)
+
+                
 // Adapted from https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs
 #set page(height: auto, width: auto, margin: 0em)
 

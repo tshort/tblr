@@ -453,12 +453,12 @@
 
 // Returns an array with two components.
 // If there's nothing to split, the content is returned as the first with none as the second.
-#let split-content(x, marker: "&", direction: ltr, hide: false, offset: 0) = {
-  let sc = split-content.with(marker: marker, direction: direction, hide: hide, offset: offset)
+#let split-content(x, marker: "&", direction: ltr, hide: false, split: "before") = {
+  let sc = split-content.with(marker: marker, direction: direction, hide: hide, split: split)
   if type(x) == "string" {
     if x.contains(marker) {
-      let p = x.matches(marker).map(y => y.start).reduce((a,b) => if direction == ltr {calc.min(a,b)} else {calc.max(a,b)})
-      return (x.slice(0,p + offset), x.slice(p + offset + if hide {marker.len()} else {0}, x.len())) 
+      let p = x.matches(marker).map(y => if split == "before" {y.start} else {y.end}).reduce((a,b) => if direction == ltr {calc.min(a,b)} else {calc.max(a,b)})
+      return (x.slice(0,p), x.slice(p + if hide {marker.len()} else {0}, x.len())) 
     } else {
       return (x, none)
     }
@@ -475,6 +475,13 @@
       }
     } else if x.has("text") {
       return sc(x.text)
+    } else if x.has("child") {
+      let (one, two) = sc(x.child)
+      if two != none {
+        return ((x.func())(one, x.styles), (x.func())(two, x.styles))
+      } else {
+        return (x, none)
+      }
     } else if x.has("children") {
       let (one, two) = sc(x.children)
       if two != none {
@@ -511,6 +518,85 @@
   return (x, none)
 }
 
+// General splitting utility
+// `format` is a list of regex strings.
+// Each string is the point at which the content is split 
+// (on the right side of the regex).  
+// Each of these splits `x` from left to right.
+// `format` can also be a dictionary with `marker` and 
+// `split` where `split` can be "before" or "after" to
+// designate which side of the regex to split on.
+#let split-at(x, format: ()) = {
+  let something-found = false
+  let res = ()
+  let y = x
+  for a in format {
+    let split = "after"
+    let marker = a
+    if type(a) == "dictionary" {
+      split = "before"
+      marker = a.before
+    }
+    let (one, two) = split-content(y, marker: regex(marker), split: split)
+    if two != none {
+      res.push(one)
+      y = two
+      something-found = true
+    } else {
+      res.push(none)
+    }
+  } 
+  if something-found {
+    res.push(y)
+    return res
+  } else {
+    return x
+  }
+}
+
+// Aligns array `x` where each element of `x` is an array 
+// of content to be merged and aligned.
+// `alignments` is an array of `left` or `right` designations 
+// designating how each component should be aligned.
+#let align-at(x, alignments) = {
+  let result = ()
+  let widths = (0pt,) * alignments.len()
+  for row in x {
+    if type(row) != "array" {
+      continue
+    }
+    for (i, col) in row.enumerate() {
+      let w = measure(col).width
+      if w > widths.at(i) {
+        widths.at(i) = w
+      }
+    }
+  }
+  for row in x {
+    let row-content = ()
+    if type(row) != "array" {
+      result.push(row)
+      continue
+    }
+    for (i, val) in row.enumerate() {
+      row-content.push(box(width: widths.at(i), align(alignments.at(i), val)))
+    }
+    result.push(stack(dir: ltr, ..row-content))
+  }
+  result
+}
+
+// Given an array of content `x`, split it according to `format`, and then align based on `align`.
+// `format` is an array of regex strings.
+// Each string is the point at which the content is split 
+// (on the right side of the regex).  
+// Each of these splits `x` from left to right.
+// `align` is an array of `left` or `right` designations for each component.
+// The length of `align` should be one longer than the length of `format`.
+#let split-and-align(x, format: (), align: ()) = {
+  assert(align.len() == format.len() + 1, message: "Length mismatch: the length of `align` should be one longer than the length of `format`")
+  align-at(x.map(y => split-at(y, format: format)), align)
+}
 
 // For an array `a`, return an array with contents aligned. Rules mostly
 // follow tbl (https://typst.app/universe/package/tbl/):
@@ -519,12 +605,10 @@
 // - Otherwise, the rightmost occurrence of the `decimal`. Defaults to
 //   `.` just before a digit.
 // - Otherwise, the rightmost digit.
-// -  Otherwise, the content is aligned using `other-align` (default: `center`).
+// - Otherwise, the content is aligned using `other-align` (default: `center`).
 // NOTE: needs to be used in a context.
 #let decimal-align(a, decimal: regex("\.\d"), marker: "&", other-align: center) = {
   let result = ()
-  let max1 = 0pt
-  let max2 = 0pt
   for x in a {
     let xs = ()
     let xs-try = split-content(x, direction: ltr, hide: true, marker: marker)
@@ -535,36 +619,56 @@
       if xs-try.at(1) != none {     // found last decimal location
         xs = xs-try
       } else {
-        xs-try = split-content(x, direction: rtl, hide: false, marker: regex("\d"), offset: 1)
+        xs-try = split-content(x, direction: rtl, hide: false, marker: regex("\d"), split: "after")
         if xs-try.at(1) != none {   // found last digit
           xs = xs-try
         } else {                    // nothing found, so center
-          result.push((align(other-align, x), none))
+          result.push(align(other-align, x))
           continue
         }
       }
     }
-    if xs.len() == 1 {
-      xs.push("")
-    }
-    let xw1 = measure(xs.at(0)).width
-    if xw1 > max1 {
-      max1 = xw1
-    }
-    let xw2 = measure(xs.at(1)).width
-    if xw2 > max2 {
-      max2 = xw2
-    }
     result.push(xs)
   }
-  for (i,x) in result.enumerate() {
-    if x.at(1) == none {
-      result.at(i) = x.at(0)
-    } else {
-      result.at(i) = stack(dir: ltr, box(width: max1, align(right, x.at(0))), box(width: max2, align(left, x.at(1))))
-      
-    }
-  }
-  result
+  return align-at(result, (right, left))
 }
 
+
+// Convert `df` from a dataframe to a flat array suitable to passing to `table`.
+// `df` is expected to be a dictionary in dataframe style where each component is a columnar array.
+// If `include-headers` is `true`, the keys of the dictionary are included on the first row. 
+#let dataframe-to-table(df, include-header: true) = {
+  let result = ()
+  if include-header {
+    for col in df.keys() {
+      result.push(col)
+    }
+  }
+  for row in range(df.at(df.keys().at(0)).len()) {
+    for col in df.keys() {
+      result.push(df.at(col).at(row))
+    }
+  }
+  return result
+}
+
+// Converts string `x` into an array. 
+// This is a thin wrapper over `csv.decode`.
+// Options include:
+// - `delimiter`: default: ","
+// - `flatten`: default: `true`: Flatten the result.
+// - `trim`: default: `true`: Trim each string.
+// - `evaluate`: default: `false`: `eval` each string to convert each to content.
+#let from-csv(x, delimiter: ",", flatten: true, trim: true, evaluate: false) = {
+  let result = csv.decode(x, delimiter: delimiter)
+  if flatten {
+    result = result.flatten()
+  }
+  if trim {
+    result = result.map(x => x.trim())
+  }
+  if evaluate {
+    result = result.map(eval.with(mode: "markup"))
+  }
+  return result
+}
