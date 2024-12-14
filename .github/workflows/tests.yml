@@ -1,7 +1,10 @@
-name: Tests
+name: tests
 on:
   push:
     branches: [ master ]
+    paths:
+      - src/**
+      - tests/**
   pull_request:
     branches: [ master ]
 
@@ -15,18 +18,8 @@ jobs:
       - name: Probe runner package cache
         uses: awalsh128/cache-apt-pkgs-action@latest
         with:
-          packages: imagemagick cargo
+          packages: cargo
           version: 1.0
-
-      - name: Install oxipng from crates.io
-        uses: baptiste0928/cargo-install@v2.2.0
-        with:
-          crate: oxipng
-
-      - name: Install just from crates.io
-        uses: baptiste0928/cargo-install@v2.2.0
-        with:
-          crate: just
 
       - name: Install typst-test from github
         uses: baptiste0928/cargo-install@v2.2.0
@@ -41,15 +34,4 @@ jobs:
           version: 'v0.12.0'
 
       - name: Run test suite
-        run: just ci
-
-      - name: Archive artifacts
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: artifacts
-          path: |
-            tests/**/diff/*.png
-            tests/**/out/*.png
-            tests/**/ref/*.png
-          retention-days: 5
+        run: typst-test run
