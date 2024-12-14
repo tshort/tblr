@@ -12,7 +12,7 @@ import os
 
 for fn in os.listdir("examples"):
     if fn.endswith('.typ'):
-        subprocess.run(["typst", "compile", fn, "-f", "pdf", "--root", ".."], cwd = "examples") 
+        subprocess.run(["typst", "compile", fn, "-f", "svg", "--root", ".."], cwd = "examples") 
 
 def read1(fname):
     with open(fname) as f:
@@ -39,19 +39,26 @@ with open("README.md", "w") as out:
 
 # test_template = open("tests/examples/test-template.typ").read()
 
+import pathlib
 
-# with open("tests/examples/test.typ", "w") as out:
-#     out.write(template.format( 
-#                               population = population,
-#                               booktabs = booktabs,
-#                               generalalign = generalalign,
-#                               decimalalign = decimalalign,
-#                               grantspend = grantspend))
+for fn in os.listdir("examples"):
+    if fn.endswith('.typ'):
+        fnr = pathlib.Path(fn).stem        
+        pathlib.Path("tests/examples/" + fnr).mkdir(parents=True, exist_ok=True) 
+        with open("tests/examples/" + fnr + "/test.typ", "w") as out:
+            out.write(
+                """
+                #import "/tblr.typ": *
+          
+                #set page(height: auto, width: auto, margin: 2pt)
+                #show figure.where(kind: table): set figure.caption(position: top)
 
+                """)
+            txt = read1("examples/" + fn)
+            out.write(txt)
 
 import shutil
 import os
-import pathlib
 
 pathlib.Path("../packages/packages/preview/tblr/" + version).mkdir(parents=True, exist_ok=True) 
 

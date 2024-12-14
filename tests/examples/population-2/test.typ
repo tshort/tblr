@@ -1,5 +1,10 @@
-#import "../tblr.typ": *
-#import "@preview/zero:0.3.0": ztable
+
+                #import "/tblr.typ": *
+          
+                #set page(height: auto, width: auto, margin: 2pt)
+                #show figure.where(kind: table): set figure.caption(position: top)
+
+                #import "@preview/zero:0.3.0": ztable
 
 #set page(height: auto, width: auto, margin: 0em)
 
