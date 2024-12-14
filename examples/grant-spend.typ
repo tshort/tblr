@@ -1,4 +1,3 @@
-// #import "@preview/tblr:0.2.0": *
 #import "../tblr.typ": *
 
 // Adapted from https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs
@@ -17,13 +16,12 @@ Merton                 | 9  | 29 | 113 | 3656112
 Croydon                | 10 | 20 | 127 | 3629066
 ")
 
-#set table(stroke: none)
-
 #let bar(x) = {
   rect(width: int(x) / 7000000 * 2in, fill: blue, text(fill: white, x))
 }
 
 #tblr(columns: 5,
+  stroke: none,
   align: center+horizon,
   // formatting directives
   rows(within: "header", auto, fill: aqua.lighten(60%), hooks: strong),

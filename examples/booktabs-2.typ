@@ -1,4 +1,3 @@
-// #import "@preview/tblr:0.2.0": *
 #import "../tblr.typ": *
 
 #set page(height: auto, width: auto, margin: 2pt)
