@@ -266,12 +266,16 @@ Here is an example. It also shows usage of `dataframe-to-table`.
   "Fancy Numbers": ($(4.23 ± 0.01) times 10^2$, $-25.23 ± 10.1$, $1.23 times 10^2$, $0.5$),
 )
 
-
-
 #let align-polar = split-and-align.with(
   //          50  .2         ∠      120  .3°    
   format: ("\d+", "[^∠]*", "∠",   "\d+"), 
   align:  (right, left,    right, right, left))
+  // Regex meanings:
+  // \d+:   one or more digits
+  // [^∠]*: anything but ∠
+  // ∠:     ∠
+  // \d+:   one or more digits
+  // The last element is everything after the last match.
 
 #let align-complex = split-and-align.with(
   format: ("\d+", "[^+−-]*",   ".*j", "\d+"), 

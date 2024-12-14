@@ -527,14 +527,17 @@
 // `split` where `split` can be "before" or "after" to
 // designate which side of the regex to split on.
 #let split-at(x, format: ()) = {
-  if type(format.at(0)) == "string" {
-    format = format.map(x => (marker: x, split: "after"))
-  }
   let something-found = false
   let res = ()
   let y = x
   for a in format {
-    let (one, two) = split-content(y, marker: regex(a.marker), split: a.split)
+    let split = "after"
+    let marker = a
+    if type(a) == "dictionary" {
+      split = "before"
+      marker = a.before
+    }
+    let (one, two) = split-content(y, marker: regex(marker), split: split)
     if two != none {
       res.push(one)
       y = two
