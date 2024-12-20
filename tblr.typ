@@ -43,7 +43,7 @@
   let header-rows = 0
   for (k, val) in a.enumerate() {
     if type(val) == content and val.func() == table.header {
-      (matrix, lines, _) = table-to-matrix(val.fields().children, ncols)
+      (matrix, _, _) = table-to-matrix(val.fields().children, ncols)
       header-rows = matrix.len()
       row = row + header-rows
       col = 0
@@ -71,16 +71,15 @@
       continue
     }
     assert(col <= ncols, message: "Column too long with colspans given.")
+    while col < ncols and current-row-spans.at(col) > 0 {   // skip over prior rowspans
+      col = col + 1
+    }
     if col == ncols {
       row = row + 1
       col = 0
       matrix.push((ncols * ((body: none),)),)
       current-row-spans = current-row-spans.map(x => x - 1)
     }
-    while col < ncols and current-row-spans.at(col) > 0 {   // skip over prior rowspans
-      col = col + 1
-    }
-    if col == ncols { continue }
     if type(val) == content and val.func() == table.cell {
       let cs = val.at("colspan", default: 1)
       let rs = val.at("rowspan", default: 1)
