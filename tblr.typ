@@ -80,6 +80,9 @@
       matrix.push((ncols * ((body: none),)),)
       current-row-spans = current-row-spans.map(x => x - 1)
     }
+    while col < ncols and current-row-spans.at(col) > 0 {   // skip over prior rowspans
+      col = col + 1
+    }
     if type(val) == content and val.func() == table.cell {
       let cs = val.at("colspan", default: 1)
       let rs = val.at("rowspan", default: 1)
