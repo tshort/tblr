@@ -134,6 +134,7 @@
 ///////////////
 
 #let expand-position(x, rng, extras: (:)) = {
+  if rng.len() == 0 {return ()}
   let max = rng.at(rng.len() - 1)
   if type(x) == "integer" {
     if x >= 0 {
@@ -172,8 +173,12 @@
 #let expand-positions(x, row-range, col-range, header-rows) = {
   let result = ()
   for (row, col) in x {
-    for irow in expand-position(row, row-range) {
-      for icol in expand-position(col, col-range) {
+    let row-expanded = expand-position(row, row-range) 
+    if row-expanded.len() == 0 {continue}
+    for irow in row-expanded {
+      let col-expanded = expand-position(col, col-range) 
+      if col-expanded.len() == 0 {continue}
+      for icol in col-expanded {
         result.push((irow, icol))
       }
     }
@@ -326,7 +331,12 @@
   for l in lines {
     if is-type(l, "hline") {
       if l.within == "header" {
-        l.y = expand-position(l.y, range(header-rows)).at(0)
+        let l-expanded = expand-position(l.y, range(header-rows))
+        if l-expanded.len() > 0 {
+          l.y = l-expanded.at(0)
+        } else {
+          l.y = 0
+        }
       } else {
         l.y = expand-position(l.y, range(nrows)).at(0)
       }

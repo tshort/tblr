@@ -420,6 +420,10 @@ Croydon                | 10 | 20 | 127 | 3629066
 
 ## Changelog
 
+### v0.3.1
+
+* Bug fixes
+
 ### v0.3.0
 
 * Add `note` for table notes.

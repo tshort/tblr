@@ -36,3 +36,16 @@
   [1], [2], [3],  [4],
 )
 
+#pagebreak()
+
+#tblr(columns: 4,
+  header-rows: 0,
+  cols(within: "header", auto, fill: blue),
+  ..range(16).map(str))
+
+#pagebreak()
+
+#tblr(columns: 4,
+  header-rows: 0,
+  hline(within: "header", y: 1, stroke: red),
+  ..range(16).map(str))
