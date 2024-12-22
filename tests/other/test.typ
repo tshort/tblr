@@ -65,3 +65,14 @@
   ..(20 * (lorem(2),)))
 )
 
+#pagebreak()
+
+#context tblr( 
+  ret: "",
+  columns: 3,
+  col-apply(end, decimal-align),
+  [hello], [world], [1.234],
+  [hello], [world], [12.34],
+  table.cell(colspan: 3)[sub-heading],
+  [hello], [world], [123.4]
+)

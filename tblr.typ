@@ -643,7 +643,11 @@
         if xs-try.at(1) != none {   // found last digit
           xs = xs-try
         } else {                    // nothing found, so center
-          result.push(align(other-align, x))
+          if x == none {
+            result.push(none)
+          } else {
+            result.push(align(other-align, x))
+          }
           continue
         }
       }
