@@ -365,11 +365,19 @@
             caption: caption, placement: placement)
   }
   if remarks != none or notes.len() > 0 {
-    t = context stack(t, v(0.3em),
-      align(left, 
-        box(width: measure(t).width, 
+    if type(n.columns) == "array" and n.columns.any(x => type(x) == "fraction") {
+      t = stack(t, v(0.3em),
+        align(left, 
           grid(columns: 2, ..notes.flatten(), 
-               [], remarks, inset: (y: 0.3em))))) 
+               [], remarks, inset: (y: 0.3em)))) 
+    } else {
+      // absolute widths, so fit the remarks within the table width
+      t = context stack(t, v(0.3em),
+        align(left, 
+          box(width: measure(t).width, 
+            grid(columns: 2, ..notes.flatten(), 
+                 [], remarks, inset: (y: 0.3em))))) 
+    }
   }
   if caption != none {
     t = figure(caption: caption, placement: placement, t, kind: table)

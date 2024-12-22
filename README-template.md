@@ -261,6 +261,10 @@ styling to one of the columns of a table. Adapted from
 
 ## Changelog
 
+### v0.3.1
+
+* Bug fixes.
+
 ### v0.3.0
 
 * Add `note` for table notes.

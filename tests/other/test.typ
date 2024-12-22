@@ -49,3 +49,19 @@
   header-rows: 0,
   hline(within: "header", y: 1, stroke: red),
   ..range(16).map(str))
+
+#pagebreak()
+#set page(width: 16cm)
+
+#tblr(remarks: lorem(20), 
+  columns: 5,
+  ..(20 * (lorem(2),)))
+)
+
+#pagebreak()
+
+#tblr(remarks: lorem(20), 
+  columns: (1fr, auto, auto, auto, auto),
+  ..(20 * (lorem(2),)))
+)
+
