@@ -43,7 +43,7 @@
   let header-rows = 0
   for (k, val) in a.enumerate() {
     if type(val) == content and val.func() == table.header {
-      (matrix, lines, _) = table-to-matrix(val.fields().children, ncols)
+      (matrix, _, _) = table-to-matrix(val.fields().children, ncols)
       header-rows = matrix.len()
       row = row + header-rows
       col = 0
@@ -71,6 +71,9 @@
       continue
     }
     assert(col <= ncols, message: "Column too long with colspans given.")
+    while col < ncols and current-row-spans.at(col) > 0 {   // skip over prior rowspans
+      col = col + 1
+    }
     if col == ncols {
       row = row + 1
       col = 0
@@ -80,7 +83,6 @@
     while col < ncols and current-row-spans.at(col) > 0 {   // skip over prior rowspans
       col = col + 1
     }
-    if col == ncols { continue }
     if type(val) == content and val.func() == table.cell {
       let cs = val.at("colspan", default: 1)
       let rs = val.at("rowspan", default: 1)
@@ -132,6 +134,7 @@
 ///////////////
 
 #let expand-position(x, rng, extras: (:)) = {
+  if rng.len() == 0 {return ()}
   let max = rng.at(rng.len() - 1)
   if type(x) == "integer" {
     if x >= 0 {
@@ -170,8 +173,12 @@
 #let expand-positions(x, row-range, col-range, header-rows) = {
   let result = ()
   for (row, col) in x {
-    for irow in expand-position(row, row-range) {
-      for icol in expand-position(col, col-range) {
+    let row-expanded = expand-position(row, row-range) 
+    if row-expanded.len() == 0 {continue}
+    for irow in row-expanded {
+      let col-expanded = expand-position(col, col-range) 
+      if col-expanded.len() == 0 {continue}
+      for icol in col-expanded {
         result.push((irow, icol))
       }
     }
@@ -324,7 +331,12 @@
   for l in lines {
     if is-type(l, "hline") {
       if l.within == "header" {
-        l.y = expand-position(l.y, range(header-rows)).at(0)
+        let l-expanded = expand-position(l.y, range(header-rows))
+        if l-expanded.len() > 0 {
+          l.y = l-expanded.at(0)
+        } else {
+          l.y = 0
+        }
       } else {
         l.y = expand-position(l.y, range(nrows)).at(0)
       }
@@ -353,11 +365,19 @@
             caption: caption, placement: placement)
   }
   if remarks != none or notes.len() > 0 {
-    t = context stack(t, v(0.3em),
-      align(left, 
-        box(width: measure(t).width, 
+    if type(n.columns) == "array" and n.columns.any(x => type(x) == "fraction") {
+      t = stack(t, v(0.3em),
+        align(left, 
           grid(columns: 2, ..notes.flatten(), 
-               [], remarks, inset: (y: 0.3em))))) 
+               [], remarks, inset: (y: 0.3em)))) 
+    } else {
+      // absolute widths, so fit the remarks within the table width
+      t = context stack(t, v(0.3em),
+        align(left, 
+          box(width: measure(t).width, 
+            grid(columns: 2, ..notes.flatten(), 
+                 [], remarks, inset: (y: 0.3em))))) 
+    }
   }
   if caption != none {
     t = figure(caption: caption, placement: placement, t, kind: table)
@@ -623,7 +643,11 @@
         if xs-try.at(1) != none {   // found last digit
           xs = xs-try
         } else {                    // nothing found, so center
-          result.push(align(other-align, x))
+          if x == none {
+            result.push(none)
+          } else {
+            result.push(align(other-align, x))
+          }
           continue
         }
       }
