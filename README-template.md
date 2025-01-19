@@ -175,6 +175,15 @@ Here is an example:
 {decimalalign}
 ```
 
+An alternative approach to alignment is to use the `align-column`
+function from the [Zero](https://github.com/Mc-Zen/zero) package.
+
+![Alignment with Zero](examples/zero.svg)
+
+```typ
+#import "@preview/tblr:{version}": *
+{zero}
+```
 
 ### General Alignment Utilities
 
@@ -260,6 +269,10 @@ styling to one of the columns of a table. Adapted from
 
 
 ## Changelog
+
+### v0.3.2
+
+* Add an example using `align-column` from the zero package.
 
 ### v0.3.1
 

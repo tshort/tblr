@@ -12,7 +12,7 @@ Here is an example:
 ![Example 1](examples/population.svg)
 
 ```typ
-#import "@preview/tblr:0.3.1": *
+#import "@preview/tblr:0.3.2": *
 
 #set page(height: auto, width: auto, margin: 0em)
 
@@ -202,7 +202,7 @@ Here is an example:
 ![Decimal Alignment](examples/decimal-align.svg)
 
 ```typ
-#import "@preview/tblr:0.3.1": *
+#import "@preview/tblr:0.3.2": *
 
 #set page(height: auto, width: auto, margin: 0em)
 
@@ -230,6 +230,26 @@ Here is an example:
 
 ```
 
+An alternative approach to alignment is to use the `align-column`
+function from the [Zero](https://github.com/Mc-Zen/zero) package.
+
+![Alignment with Zero](examples/zero.svg)
+
+```typ
+#import "@preview/tblr:0.3.2": *
+#import "@preview/zero:0.3.2": align-column
+
+#set page(height: auto, width: auto, margin: 0em)
+
+#context tblr(columns: 2,
+  align: center,
+  header-rows: 1,
+  col-apply(within: "body", auto, x => align-column(..x)),
+  [A],      [B],
+  [10.234], [99.1], 
+  [1.1],    [9.81+-.01], 
+  [-20000], [9.81+-.01e2])
+```
 
 ### General Alignment Utilities
 
@@ -256,7 +276,7 @@ Here is an example. It also shows usage of `dataframe-to-table`.
 ![Alignment Example](examples/general-align.svg)
 
 ```typ
-#import "@preview/tblr:0.3.1": *
+#import "@preview/tblr:0.3.2": *
 
 #set page(height: auto, width: auto, margin: 0em)
 
@@ -316,7 +336,7 @@ shows the use of `caption`, `remarks`, and `note`.
 ![Example 3](examples/booktabs.svg)
 
 ```typ
-#import "@preview/tblr:0.3.1": *
+#import "@preview/tblr:0.3.2": *
 
 #set page(height: auto, width: auto, margin: 2pt)
 #show figure.where(kind: table): set figure.caption(position: top)
@@ -381,7 +401,7 @@ styling to one of the columns of a table. Adapted from
 ![Example 2](examples/grant-spend.svg)
 
 ```typ
-#import "@preview/tblr:0.3.1": *
+#import "@preview/tblr:0.3.2": *
 
 // Adapted from https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs
 #set page(height: auto, width: auto, margin: 0em)
@@ -420,9 +440,13 @@ Croydon                | 10 | 20 | 127 | 3629066
 
 ## Changelog
 
+### v0.3.2
+
+* Add an example using `align-column` from the zero package.
+
 ### v0.3.1
 
-* Bug fixes
+* Bug fixes.
 
 ### v0.3.0
 

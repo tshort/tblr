@@ -26,6 +26,7 @@ grantspend = read1("examples/grant-spend.typ")
 booktabs = read1("examples/booktabs.typ")
 generalalign = read1("examples/general-align.typ")
 decimalalign = read1("examples/decimal-align.typ")
+zero = read1("examples/zero.typ")
 
 
 with open("README.md", "w") as out:
@@ -34,7 +35,8 @@ with open("README.md", "w") as out:
                               booktabs = booktabs,
                               generalalign = generalalign,
                               decimalalign = decimalalign,
-                              grantspend = grantspend))
+                              grantspend = grantspend,
+                              zero = zero))
 
 
 # test_template = open("tests/examples/test-template.typ").read()
