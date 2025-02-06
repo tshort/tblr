@@ -5,9 +5,9 @@
 
 #let is-type(x, ..type-arg) = {
   if type-arg.pos().len() > 0 {
-    type(x) == "dictionary" and "_type_" in x and x._type_ == type-arg.pos().at(0)
+    type(x) == dictionary and "_type_" in x and x._type_ == type-arg.pos().at(0)
   } else {
-    type(x) == "dictionary" and "_type_" in x
+    type(x) == dictionary and "_type_" in x
   }
 } 
 
@@ -21,7 +21,7 @@
 }
 
 #let to-text(x) = {
-  if type(x) == "string" {
+  if type(x) == str {
     return x
   }
   if type(x) == content and "text" in x.fields() {
@@ -136,7 +136,7 @@
 #let expand-position(x, rng, extras: (:)) = {
   if rng.len() == 0 {return ()}
   let max = rng.at(rng.len() - 1)
-  if type(x) == "integer" {
+  if type(x) == int {
     if x >= 0 {
       return (rng.at(x),)
     } else {
@@ -149,7 +149,7 @@
   if x == auto {
     return rng
   }
-  if type(x) == "function" {
+  if type(x) == function {
     return rng.filter(x)
   }
   if is-type(x, "span") {
@@ -475,7 +475,7 @@
 // If there's nothing to split, the content is returned as the first with none as the second.
 #let split-content(x, marker: "&", direction: ltr, hide: false, split: "before") = {
   let sc = split-content.with(marker: marker, direction: direction, hide: hide, split: split)
-  if type(x) == "string" {
+  if type(x) == str {
     if x.contains(marker) {
       let p = x.matches(marker).map(y => if split == "before" {y.start} else {y.end}).reduce((a,b) => if direction == ltr {calc.min(a,b)} else {calc.max(a,b)})
       return (x.slice(0,p), x.slice(p + if hide {marker.len()} else {0}, x.len())) 
@@ -511,7 +511,7 @@
       }
     } 
   }
-  if type(x) == "array" {
+  if type(x) == array {
     let splits = x.map(el => sc(el))
     let idx = if direction == ltr {
       splits.position(el => el.at(1) != none)
@@ -553,7 +553,7 @@
   for a in format {
     let split = "after"
     let marker = a
-    if type(a) == "dictionary" {
+    if type(a) == dictionary {
       split = "before"
       marker = a.before
     }
@@ -582,7 +582,7 @@
   let result = ()
   let widths = (0pt,) * alignments.len()
   for row in x {
-    if type(row) != "array" {
+    if type(row) != array {
       continue
     }
     for (i, col) in row.enumerate() {
@@ -594,7 +594,7 @@
   }
   for row in x {
     let row-content = ()
-    if type(row) != "array" {
+    if type(row) != array {
       result.push(row)
       continue
     }
