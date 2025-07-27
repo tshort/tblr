@@ -365,7 +365,7 @@
             caption: caption, placement: placement)
   }
   if remarks != none or notes.len() > 0 {
-    if type(n.columns) == "array" and n.columns.any(x => type(x) == "fraction") {
+    if type(n.columns) == array and n.columns.any(x => type(x) == fraction) {
       t = stack(t, v(0.3em),
         align(left, 
           grid(columns: 2, ..notes.flatten(), 
@@ -677,14 +677,14 @@
 }
 
 // Converts string `x` into an array. 
-// This is a thin wrapper over `csv.decode`.
+// This is a thin wrapper over `csv`.
 // Options include:
 // - `delimiter`: default: ","
 // - `flatten`: default: `true`: Flatten the result.
 // - `trim`: default: `true`: Trim each string.
 // - `evaluate`: default: `false`: `eval` each string to convert each to content.
 #let from-csv(x, delimiter: ",", flatten: true, trim: true, evaluate: false) = {
-  let result = csv.decode(x, delimiter: delimiter)
+  let result = csv(bytes(x), delimiter: delimiter)
   if flatten {
     result = result.flatten()
   }
