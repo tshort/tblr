@@ -21,6 +21,7 @@ def read1(fname):
 
 template = open("README-template.md").read()
 
+inputs = read1("examples/inputs.typ")
 population = read1("examples/population.typ")
 grantspend = read1("examples/grant-spend.typ")
 booktabs = read1("examples/booktabs.typ")
@@ -30,6 +31,7 @@ decimalalign = read1("examples/decimal-align.typ")
 
 with open("README.md", "w") as out:
     out.write(template.format(version = version, 
+                              inputs = inputs,
                               population = population,
                               booktabs = booktabs,
                               generalalign = generalalign,

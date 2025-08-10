@@ -42,6 +42,7 @@ Named arguments specific to `tblr` include:
 * `remarks`: Content to include as a comment below the table.
 * `caption`: If provided, wrap the `table` in a `figure`.
 * `placement` (default: `auto`): Passed to `figure`.
+* `content-hook` (default: `none`): Transform the input data to `table`-compatible cell content.
 * `table-fun` (default: `table`): Specifies the table-creation function to use.
 * `note-numbering` (default: "a"): Numbering for table notes.
 * `note-fun` (default: `super`): Formatting function for note indicators. 
@@ -122,7 +123,8 @@ processed in reverse order, so later entries override earlier entries.
 ```typ
 #from-csv(x, delimiter: ",", flatten: true, trim: true, evaluate: false)
 ```
-Converts string `x` into an array. This is a thin wrapper over
+Converts string `x` into an arguments type that includes an array plus
+a named argument `columns`. This is a thin wrapper over
 `csv.decode`. Options include:
 - `delimiter`: default: ","
 - `flatten`: default: `true`: Flatten the result.
@@ -130,14 +132,28 @@ Converts string `x` into an array. This is a thin wrapper over
 - `evaluate`: default: `false`: `eval` each string to convert each to content.
 
 ```typ
-#dataframe-to-table(df, include-header: true)
+#from-dataframe(df, include-header: true)
 ```
-Convert `df` from a dataframe to a flat array suitable to passing to
+Convert `df` from a dataframe to a flat array plus a named argument `columns`
+suitable to passing to
 `table`. `df` is expected to be a dictionary in dataframe style where
 each component is a columnar array. If `include-headers` is `true`, the
 keys of the dictionary are included on the first row of the table
 returned. 
 
+These data utilities can be used wih `tblr` using the `content-hook`
+option. The following shows different ways to create the same table.
+
+![Inputs](examples/inputs.svg)
+
+```typ
+#import "@preview/tblr:{version}": *
+{inputs}
+```
+
+The last example shows row-oriented input using the
+[rowmantic](https://github.com/typst-community/rowmantic) package.
+It may be possible to use other table packages in a similar fashion. 
 
 ### Decimal Alignment
 
@@ -196,7 +212,7 @@ align them based on `align`.
 into content, including equations. If the content has contexts, the
 splitting will not work with that.
 
-Here is an example. It also shows usage of `dataframe-to-table`.
+Here is an example. It also shows usage of `from-dataframe`.
 
 ![Alignment Example](examples/general-align.svg)
 
@@ -260,6 +276,16 @@ styling to one of the columns of a table. Adapted from
 
 
 ## Changelog
+
+### v0.4.0
+
+* Added the `content-hook` option to `tblr`.
+* Renamed `dataframe-to-table` to `from-dataframe` (breaking).
+* Changed `from-csv` and `from-dataframe` to return an argument type with a `columns` argument (breaking).
+
+### v0.3.2
+
+* Updates for Typst v0.13.
 
 ### v0.3.1
 

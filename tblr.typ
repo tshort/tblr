@@ -218,6 +218,7 @@
 // `remarks`: Content to include as a comment below the table.
 // `caption`: If provided, wrap the `table` in a `figure`.
 // `placement` (default: `auto`): Passed to figure.
+// `content-hook` (default: `none`): Convert table input data.
 // `table-fun` (default: `table`): Specifies the table-creation function to use.
 // `note-numbering` (default: "a"): Numbering for table notes.
 // `note-fun` (default: `super`): Formatting function for note indicators. 
@@ -230,6 +231,7 @@
           caption: none, 
           placement: auto, 
           remarks: none, 
+          content-hook: none,
           table-fun: table,
           note-numbering: "a",
           note-fun: super,
@@ -237,12 +239,6 @@
           ..args) = {
   let a = args.pos()
   let n = args.named()
-  assert("columns" in n, message: "Must supply a `columns` argument")
-  let ncols = if type(n.columns) == int {
-    n.columns 
-  } else {
-    n.columns.len()
-  }
   // split `a` into content and specs
   let content = ()
   let specs = ()
@@ -252,6 +248,21 @@
     } else {
       content.push(el)
     }
+  }
+  if content-hook != none {
+    let x = content-hook(..content)
+    if type(x) == array {
+      content = x
+    } else if type(x) == arguments {
+      content = x.pos()
+      n = n + x.named()
+    }
+  }
+  assert("columns" in n, message: "Must supply a `columns` argument")
+  let ncols = if type(n.columns) == int {
+    n.columns 
+  } else {
+    n.columns.len()
   }
   let (matrix, lines, header-rows-in-content) = table-to-matrix(content, ncols)
   if header-rows == auto {
@@ -661,7 +672,7 @@
 // Convert `df` from a dataframe to a flat array suitable to passing to `table`.
 // `df` is expected to be a dictionary in dataframe style where each component is a columnar array.
 // If `include-headers` is `true`, the keys of the dictionary are included on the first row. 
-#let dataframe-to-table(df, include-header: true) = {
+#let from-dataframe(df, include-header: true) = {
   let result = ()
   if include-header {
     for col in df.keys() {
@@ -673,7 +684,7 @@
       result.push(df.at(col).at(row))
     }
   }
-  return result
+  return arguments(columns: df.keys().len(), ..result)
 }
 
 // Converts string `x` into an array. 
@@ -685,6 +696,7 @@
 // - `evaluate`: default: `false`: `eval` each string to convert each to content.
 #let from-csv(x, delimiter: ",", flatten: true, trim: true, evaluate: false) = {
   let result = csv(bytes(x), delimiter: delimiter)
+  let ncols = result.at(0).len()
   if flatten {
     result = result.flatten()
   }
@@ -694,5 +706,5 @@
   if evaluate {
     result = result.map(eval.with(mode: "markup"))
   }
-  return result
+  return arguments(columns: ncols, ..result)
 }
