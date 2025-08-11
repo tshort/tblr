@@ -10,8 +10,8 @@
 
 #show table: set text(number-type: "lining", number-width: "tabular")
 
-#let pop = from-csv("
-China,1313,9596,136.9
+#let pop = from-csv(
+"China,1313,9596,136.9
 India,1095,3287,333.2
 United States,298,9631,31.0
 Indonesia,245,1919,127.9
@@ -24,7 +24,7 @@ Nigeria,131,923,142.7"
 
 #set table(stroke: none)
 
-#tblr(header-rows: 1, columns: 4,
+#tblr(header-rows: 1, 
   table-fun: ztable,
   align: (left+bottom, center, center, center),
   // ztable formatting

@@ -1,6 +1,6 @@
 [package]
 name = "tblr"
-version = "0.3.2"
+version = "0.4.0"
 entrypoint = "tblr.typ"
 authors = ["Tom Short <@tshort>"]
 repository = "https://github.com/tshort/tblr"

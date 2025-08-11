@@ -28,13 +28,14 @@
   format: ("[^\d+−-]*", "\d+", "[^± ]*", "±",   "[\d]+", "[.\d]*", "[^×]*", "×",    "\d+"), 
   align:  (right,       right, left,     right, right,   left,     right,   right,  right, left))
 
-#context tblr(columns: 3,
+#context tblr(
   header-rows: 1, column-gutter: 3em,
   align: center, inset: 3pt, stroke: none,
   rows(0, stroke: (bottom: 1pt)),
   col-apply(within: "body", 0, align-polar),
   col-apply(within: "body", 1, align-complex),
   col-apply(within: "body", 2, align-numbers),
+  content-hook: from-dataframe,
   // content
-  ..dataframe-to-table(df)
+  df
 )

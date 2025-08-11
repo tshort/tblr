@@ -2,18 +2,6 @@
 
 #set page(height: auto, width: auto, margin: 0em)
 
-#let pop = from-csv("
-China,1313,9596,136.9
-India,1095,3287,333.2
-United States,298,9631,31.0
-Indonesia,245,1919,127.9
-Brazil,188,8511,22.1
-Pakistan,165,803,206.2
-Bangladesh,147,144,1023.4
-Russia,142,17075,8.4
-Nigeria,131,923,142.7"
-)
-
 #set table(stroke: none)
 
 #context tblr(header-rows: 1, columns: 4,
@@ -27,6 +15,14 @@ Nigeria,131,923,142.7"
   note((-3, 3), "Highest value"),
   // content
   [Country], [Population \ (millions)],[Area\ (1000 sq. mi.)],[Pop. Density\ (per sq. mi.)],
-  ..pop
+  [China],         [1313], [9596],  [136.9],
+  [India],         [1095], [3287],  [333.2],
+  [United States], [298],  [9631],  [31.0],
+  [Indonesia],     [245],  [1919],  [127.9],
+  [Brazil],        [188],  [8511],  [22.1],
+  [Pakistan],      [165],  [803],   [206.2],
+  [Bangladesh],    [147],  [144],   [1023.4],
+  [Russia],        [142],  [17075], [8.4],
+  [Nigeria],       [131],  [923],   [142.7],
 )
 
