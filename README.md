@@ -12,7 +12,7 @@ Here is an example:
 ![Example 1](examples/population.svg)
 
 ```typ
-#import "@preview/tblr:0.4.0": *
+#import "@preview/tblr:0.4.1": *
 
 #set page(height: auto, width: auto, margin: 0em)
 
@@ -174,7 +174,7 @@ option. The following shows different ways to create the same table.
 ![Inputs](examples/inputs.svg)
 
 ```typ
-#import "@preview/tblr:0.4.0": *
+#import "@preview/tblr:0.4.1": *
 #import "@preview/rowmantic:0.4.0": rowtable
 
 #set page(height: auto, width: auto, margin: 0em)
@@ -246,7 +246,7 @@ Here is an example:
 ![Decimal Alignment](examples/decimal-align.svg)
 
 ```typ
-#import "@preview/tblr:0.4.0": *
+#import "@preview/tblr:0.4.1": *
 
 #set page(height: auto, width: auto, margin: 0em)
 
@@ -300,7 +300,7 @@ Here is an example. It also shows usage of `from-dataframe`.
 ![Alignment Example](examples/general-align.svg)
 
 ```typ
-#import "@preview/tblr:0.4.0": *
+#import "@preview/tblr:0.4.1": *
 
 #set page(height: auto, width: auto, margin: 0em)
 
@@ -361,7 +361,7 @@ shows the use of `caption`, `remarks`, and `note`.
 ![Example 3](examples/booktabs.svg)
 
 ```typ
-#import "@preview/tblr:0.4.0": *
+#import "@preview/tblr:0.4.1": *
 
 #set page(height: auto, width: auto, margin: 2pt)
 #show figure.where(kind: table): set figure.caption(position: top)
@@ -426,7 +426,7 @@ styling to one of the columns of a table. Adapted from
 ![Example 2](examples/grant-spend.svg)
 
 ```typ
-#import "@preview/tblr:0.4.0": *
+#import "@preview/tblr:0.4.1": *
 
 // Adapted from https://www.storytellingwithdata.com/blog/2012/02/grables-and-taphs
 #set page(height: auto, width: auto, margin: 0em)
@@ -464,6 +464,10 @@ Croydon                | 10 | 20 | 127 | 3629066
 
 
 ## Changelog
+
+### v0.4.1
+
+* Bug fix where `content-hook` results overrode user-entered arguments.
 
 ### v0.4.0
 

@@ -25,4 +25,15 @@
 
 #pagebreak()
 
+#tblr(
+  columns: (1in, 1in), 
+  content-hook: from-csv,
+  "one, two
+   1, 2
+   3, 4
+   5, 6
+   7, 8")
+
+#pagebreak()
+
 

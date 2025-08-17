@@ -277,6 +277,10 @@ styling to one of the columns of a table. Adapted from
 
 ## Changelog
 
+### v0.4.1
+
+* Bug fix where `content-hook` results overrode user-entered arguments.
+
 ### v0.4.0
 
 * Added the `content-hook` option to `tblr`.
