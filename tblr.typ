@@ -255,7 +255,7 @@
       content = x
     } else if type(x) == arguments {
       content = x.pos()
-      n = n + x.named()
+      n = x.named() + n
     }
   }
   assert("columns" in n, message: "Must supply a `columns` argument")
