@@ -76,3 +76,16 @@
   table.cell(colspan: 3)[sub-heading],
   [hello], [world], [123.4]
 )
+
+#pagebreak()
+
+#tblr(
+  columns: 4,
+  header-rows: 2,
+  rows(within: "header", auto, hooks: text.with(red, weight: "bold")),
+  cells((0, 2), colspan: 2),
+  cells((0, 0), rowspan: 2),
+  [a], [b], [c], [], 
+  [],  [e], [f], [g], 
+  [h], [i], [j], [k],
+)

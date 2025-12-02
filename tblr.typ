@@ -283,6 +283,9 @@
       }
       
       for (row, col) in positions {
+        if matrix.at(row).at(col).body == none {
+          continue
+        }
         if "sets" in s {
           let (f, v) = s.sets
           matrix.at(row).at(col).body = {set f(..v); matrix.at(row).at(col).body}
