@@ -286,6 +286,14 @@ styling to one of the columns of a table. Adapted from
 
 ## Changelog
 
+### v0.4.3
+
+* Add HTML support for the alignment utilities.
+
+### v0.4.2
+
+* Bug fix.
+
 ### v0.4.1
 
 * Bug fix where `content-hook` results overrode user-entered arguments.
