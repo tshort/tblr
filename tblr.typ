@@ -27,7 +27,7 @@
   if type(x) == content and "text" in x.fields() {
     return x.text
   }
-  return none
+  return ""
 }
 
 /////////////// 
@@ -594,28 +594,54 @@
 // designating how each component should be aligned.
 #let align-at(x, alignments) = {
   let result = ()
-  let widths = (0pt,) * alignments.len()
-  for row in x {
-    if type(row) != array {
-      continue
-    }
-    for (i, col) in row.enumerate() {
-      let w = measure(col).width
-      if w > widths.at(i) {
-        widths.at(i) = w
+  if "html" in dictionary(std) and target() == "html" {
+    let widths = (0,) * alignments.len()
+    for row in x {
+      if type(row) != array {
+        continue
+      }
+      for (i, col) in row.enumerate() {
+        let w = to-text(col).clusters().len()
+        if w > widths.at(i) {
+          widths.at(i) = w
+        }
       }
     }
-  }
-  for row in x {
-    let row-content = ()
-    if type(row) != array {
-      result.push(row)
-      continue
+    for row in x {
+      let row-content = ()
+      if type(row) != array {
+        result.push(row)
+        continue
+      }
+      for (i, val) in row.enumerate() {
+        row-content.push(html.elem("span", attrs: (class: "cell-" + repr(alignments.at(i))), val))
+      }
+      result.push(html.elem("span", attrs: (class: "decimal-cell", role: "text", style: "grid-template-columns:" + widths.map(el => str(el) + "ch").join(" ")), row-content.join()))
     }
-    for (i, val) in row.enumerate() {
-      row-content.push(box(width: widths.at(i), align(alignments.at(i), val)))
+  } else {
+    let widths = (0pt,) * alignments.len()
+    for row in x {
+      if type(row) != array {
+        continue
+      }
+      for (i, col) in row.enumerate() {
+        let w = measure(col).width
+        if w > widths.at(i) {
+          widths.at(i) = w
+        }
+      }
     }
-    result.push(stack(dir: ltr, ..row-content))
+    for row in x {
+      let row-content = ()
+      if type(row) != array {
+        result.push(row)
+        continue
+      }
+      for (i, val) in row.enumerate() {
+        row-content.push(box(width: widths.at(i), align(alignments.at(i), val)))
+      }
+      result.push(stack(dir: ltr, ..row-content))
+    }
   }
   result
 }
