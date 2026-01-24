@@ -686,7 +686,11 @@
           if x == none {
             result.push(none)
           } else {
-            result.push(align(other-align, x))
+            if "html" in dictionary(std) and target() == "html" {
+              result.push(x)
+            } else {
+              result.push(align(other-align, x))
+            }
           }
           continue
         }
