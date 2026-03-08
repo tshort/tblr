@@ -38,6 +38,7 @@ These include `cells()`, `cols()`, `rows()`, `hline()`, ...
  
 Named arguments specific to `tblr` include:
 
+* `columns`: Same as with `std.table`, but a string argument uses [pillar](https://github.com/Mc-Zen/pillar/tree/main) for column specifications.
 * `header-rows` (default: auto): Number of header rows in the content. `auto` means determine number from header rows provided with content, otherwise zero.
 * `remarks`: Content to include as a comment below the table.
 * `caption`: If provided, wrap the `table` in a `figure`.
@@ -232,6 +233,28 @@ None of the formatting directives in tables currently work. Styling with CSS wil
 
 ## More Examples
 
+### Column Specifications with Pillar
+
+[Pillar](https://github.com/Mc-Zen/pillar) provides a convenient way to enter basic column specifications using a string argument for `columns`. From the Pillar documentation: Each column is specified by a letter that describes its alignment which can be `l` (left), `c` (center), `r` (right), or `a` (auto). 
+
+Choosing capital letters `L`, `C`, `R`, or `A` instead of lower-case letters activates number alignment at the decimal separator for a specific column (similar to the column type "S" of the LaTeX package [siunitx](https://github.com/josephwright/siunitx)). This uses `decimal-align` on the table body. 
+
+The width of a column can optionally be specified by appending a (relative) length, or fraction in square brackets to the alignment specifier, e.g., `c[2cm]` or `r[1fr]`. 
+
+Vertical lines can be added between columns with a `|` character. Double lines can be produced with `||` (see [`vline` customization](#vline-customization)). The stroke of the vertical line can be changed by appending anything that is usually allowed as a stroke argument in square brackets, e.g., `|[2pt]`, `|[red]` or `|[(dash: \"dashed\")]`. 
+
+A column specification string may contain any number of spaces (e.g., to improve readability) — all spaces will be ignored. 
+
+Here is an example:
+
+![Inputs](examples/population-pillar.svg)
+
+```typ
+#import "@preview/tblr:{version}": *
+{pillar}
+```
+
+
 ### Booktabs
 
 This example tries to mimic [booktabs](https://ctan.org/pkg/booktabs).
@@ -285,6 +308,12 @@ styling to one of the columns of a table. Adapted from
 
 
 ## Changelog
+
+### v0.5.0
+
+* Add Pillar support for column specifications.
+* Fix some hline/vline bugs.
+
 
 ### v0.4.3
 

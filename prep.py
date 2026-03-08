@@ -27,6 +27,7 @@ grantspend = read1("examples/grant-spend.typ")
 booktabs = read1("examples/booktabs.typ")
 generalalign = read1("examples/general-align.typ")
 decimalalign = read1("examples/decimal-align.typ")
+pillar = read1("examples/population-pillar.typ")
 
 
 with open("README.md", "w") as out:
@@ -36,6 +37,7 @@ with open("README.md", "w") as out:
                               booktabs = booktabs,
                               generalalign = generalalign,
                               decimalalign = decimalalign,
+                              pillar = pillar,
                               grantspend = grantspend))
 
 
