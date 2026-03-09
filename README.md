@@ -524,6 +524,10 @@ Croydon                | 10 | 20 | 127 | 3629066
 * Fix some hline/vline bugs.
 * Breaking: `end` for `hline` and `vline` now mean one past `nrows` and `ncols`.
 
+### v0.4.4
+
+* Fix decimal align with entries without numbers.
+
 ### v0.4.3
 
 * Add HTML support for the alignment utilities.
