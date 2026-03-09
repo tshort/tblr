@@ -56,6 +56,21 @@
       // skip over prior rowspans
       col = col + 1
     }
+    if type(val) == content and val.func() == table.vline {
+      let flds = val.fields()
+      if not "x" in flds {
+        flds.x = col
+      }
+      lines.push((_type_: "vline") + flds)
+      continue
+    }
+    if is-type(val, "vline") {
+      if val.x == none {
+        val.x = col
+      }
+      lines.push(val)
+      continue
+    }
     if col == ncols {
       row = row + 1
       col = 0
@@ -75,14 +90,6 @@
         val.y = row
       }
       lines.push(val)
-      continue
-    }
-    if type(val) == content and val.func() == table.vline {
-      let flds = val.fields()
-      if not "x" in flds {
-        flds.x = row
-      }
-      lines.push((_type_: "vline") + flds)
       continue
     }
     while col < ncols and current-row-spans.at(col) > 0 {
@@ -797,23 +804,23 @@
   for l in lines {
     if is-type(l, "hline") {
       if "within" in l and l.within == "header" {
-        let l-expanded = expand-position(l.y, range(header-rows))
+        let l-expanded = expand-position(l.y, range(header-rows + 1))
         if l-expanded.len() > 0 {
           l.y = l-expanded.at(0)
         } else {
           l.y = 0
         }
       } else {
-        l.y = expand-position(l.y, range(nrows)).at(0)
+        l.y = expand-position(l.y, range(nrows + 1)).at(0)
       }
       l = remove(l, ("_type_", "within"))
       line-output.push(table.hline(..l))
     }
     if is-type(l, "vline") {
+      l.x = expand-position(l.x, range(ncols + 1)).at(0)
       line-output.push(table.vline(..remove(l, ("_type_",))))
     }
   }
-  // return matrix
   // convert back to a table
   let (t, h) = matrix-to-table(matrix, header-rows)
   let args = if h.len() > 0 {

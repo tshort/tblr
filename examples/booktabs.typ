@@ -12,9 +12,9 @@
   rows(within: "header", auto, inset: (y: 0.5em)),
   rows(within: "header", auto, align: center),
   hline(within: "header", y: 0, stroke: 0.08em),
-  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
+  hline(within: "header", y: end, stroke: 0.05em),
   rows(within: "body", 0, inset: (top: 0.5em)),
-  hline(y: end, position: bottom, stroke: 0.08em),
+  hline(y: end, stroke: 0.08em),
   rows(end, inset: (bottom: 0.5em)),
   // table notes, remarks, and caption
   note((1, (1,4)), [$m v$ is in kg·m².]),

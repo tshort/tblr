@@ -428,9 +428,9 @@ shows the use of `caption`, `remarks`, and `note`.
   rows(within: "header", auto, inset: (y: 0.5em)),
   rows(within: "header", auto, align: center),
   hline(within: "header", y: 0, stroke: 0.08em),
-  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
+  hline(within: "header", y: end, stroke: 0.05em),
   rows(within: "body", 0, inset: (top: 0.5em)),
-  hline(y: end, position: bottom, stroke: 0.08em),
+  hline(y: end, stroke: 0.08em),
   rows(end, inset: (bottom: 0.5em)),
   // table notes, remarks, and caption
   note((1, (1,4)), [$m v$ is in kg·m².]),
@@ -451,24 +451,8 @@ shows the use of `caption`, `remarks`, and `note`.
 
 ```
 
-The approach above is a bit cumbersome, but the formatting directives
-can be used as part of a wrapper function if you want to create many
-tables with a booktabs style. Here's an example:
-
-```typ
-#let booktbl = tblr.with(
-  stroke: none,
-  column-gutter: 0.6em,
-  // booktabs style rules
-  rows(within: "header", auto, inset: (y: 0.5em)),
-  rows(within: "header", auto, align: center),
-  hline(within: "header", y: 0, stroke: 0.08em),
-  hline(within: "header", y: end, position: bottom, stroke: 0.05em),
-  rows(within: "body", 0, inset: (top: 0.5em)),
-  hline(y: end, position: bottom, stroke: 0.08em),
-  rows(end, inset: (bottom: 0.5em)),
-)
-```
+The approach above is a bit involved, but the formatting directives
+can be used as part of a wrapper function as shown above.
 
 ### Graphical Styling
 
