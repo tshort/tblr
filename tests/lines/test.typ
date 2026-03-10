@@ -49,7 +49,6 @@
 #pagebreak()
 
 #tblr(
-  // ret: "arguments",
   columns: 3,
   hline(y: 0),
   hline(y: -2),
@@ -57,6 +56,26 @@
   vline(x: 0),
   vline(x: -2),
   vline(x: end),
+  [1], [2], [3],
+  [4], [5], [6],
+  [7], [8], [9],
+)
+
+#pagebreak()
+
+#tblr(
+  columns: 3,
+  hline(0, -2, end),
+  vline(0, -2, end),
+  [1], [2], [3],
+  [4], [5], [6],
+  [7], [8], [9],
+)
+
+#tblr(
+  columns: 3,
+  hline(y: (0, -2, end)),
+  vline(x: (0, -2, end)),
   [1], [2], [3],
   [4], [5], [6],
   [7], [8], [9],

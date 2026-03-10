@@ -100,7 +100,9 @@ and the second is the body of the note.
 
 Several directives are available to control horizontal and vertical
 lines. These are like `table.hline` and `table.vline`, but they can
-include directives like `end`.
+include directives like `end` (`end` means one beyond `nrow` or `ncol`). Positional arguments are passed to either `x` or `y` named arguments
+as appropriate. These both accept multiple arguments to support multiple
+lines.
 
 * `hline` -- also takes a `within` argument to apply to "header" or
   "body".

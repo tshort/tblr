@@ -269,11 +269,17 @@
 
 // Like `table.hline` but lazy and can include indicators like `end`.
 #let hline(y: none, within: auto, ..args) = {
+  if args.pos().len() > 0 {
+    y = args.pos()
+  }
   (_type_: "hline", within: within, ..((y: y) + args.named()))
 }
 
 // Like `table.vline` but lazy and can include indicators like `end`.
 #let vline(x: none, ..args) = {
+  if args.pos().len() > 0 {
+    x = args.pos()
+  }
   (_type_: "vline", ..((x: x) + args.named()))
 }
 
@@ -610,6 +616,12 @@
   return arguments(columns: ncols, ..result)
 }
 
+#let _it(x) = {
+  if type(x) == int {
+    return (x,)
+  }
+  return x
+}
 
 ///////////////
 // tblr -- main function
@@ -800,25 +812,35 @@
   // process lines
   let row-map = range(nrows)
   let line-output = ()
-  // return lines
   for l in lines {
     if is-type(l, "hline") {
       if "within" in l and l.within == "header" {
         let l-expanded = expand-position(l.y, range(header-rows + 1))
         if l-expanded.len() > 0 {
-          l.y = l-expanded.at(0)
+          l.y = l-expanded
         } else {
           l.y = 0
         }
       } else {
-        l.y = expand-position(l.y, range(nrows + 1)).at(0)
+        l.y = expand-position(l.y, range(nrows + 1))
       }
       l = remove(l, ("_type_", "within"))
-      line-output.push(table.hline(..l))
+      for y in _it(l.y) {
+        let lnew = l
+        lnew.y = y
+        line-output.push(table.hline(..lnew))
+      }
     }
     if is-type(l, "vline") {
-      l.x = expand-position(l.x, range(ncols + 1)).at(0)
-      line-output.push(table.vline(..remove(l, ("_type_",))))
+      l.x = expand-position(l.x, range(ncols + 1))
+      // return (l, ncols)
+      // l.remove("_type_")
+      l = remove(l, ("_type_",))
+      for x in _it(l.x) {
+        let lnew = l
+        lnew.x = x
+        line-output.push(table.vline(..lnew))
+      }
     }
   }
   // convert back to a table
