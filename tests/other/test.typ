@@ -47,7 +47,7 @@
 
 #tblr(columns: 4,
   header-rows: 0,
-  hline(within: "header", y: 1, stroke: red),
+  hline(within: "header", y: 0, stroke: red),
   ..range(16).map(str))
 
 #pagebreak()
